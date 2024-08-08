@@ -28,15 +28,15 @@ Antes de executar os scripts, você precisará instalar as seguintes bibliotecas
 
 ### Figura 1: Exemplo de Previsão de Anomalia de Precipitação Mensal - ENSEMBLE
 
-![Anomalia Precipitação Mensal](Figuras/output_precipitacao_anomalia/precipitacao_anomalia_10_2024.png)
+<img src="Figuras/output_precipitacao_anomalia/precipitacao_anomalia_10_2024.png" alt="Anomalia Precipitação Mensal" width="600" height="400"/>
 
 ### Figura 2: Exemplo de Previsão de Anomalia de Temperatura Máxima Mensal - NMME
 
-![NMME tmax](Figuras/NMME_tmax_10-2024_brasil.png)
+<img src="Figuras/NMME_tmax_10-2024_brasil.png" alt="NMME tmax" width="600" height="400"/>
 
 ### Figura 3: Exemplo de Previsão de Precipitação Acumulada - CFSv2
 
-![CFS](Figuras/acumulado_cfsv2.png)
+<img src="Figuras/acumulado_cfsv2.png" alt="CFS" width="600" height="400"/>
 
 ## Como Utilizar
 
@@ -59,4 +59,3 @@ Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull re
 ## Licença
 
 Este projeto está licenciado sob a Licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
