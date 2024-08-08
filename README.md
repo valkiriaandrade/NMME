@@ -26,25 +26,17 @@ Antes de executar os scripts, você precisará instalar as seguintes bibliotecas
   
 ## Imagens
 
-### Figura 1: Exemplo de Precipitação Acumulada Mensal
+### Figura 1: Exemplo de Previsão de Anomalia de Precipitação Mensal - ENSEMBLE
 
-![Precipitação Acumulada mensal](Figuras/Acum_PRP_Mai_2024.png)
+![Anomalia Precipitação Mensal](Figuras/precipitacao_anomalia_10_2024.png)
 
-### Figura 2: Exemplo de Precipitação Acumulada Mensal - Região Norte
+### Figura 2: Exemplo de Previsão de Anomalia de Temperatura Máxima Mensal - NMME
 
-![Precipitação scumulada mensal - norte](Figuras/Acum_PRP_Jul_2024_Norte.png)
+![NMME tmax](Figuras/NMME_tmax_10-2024_brasil.png)
 
-### Figura 3: Exemplo de Climatologia - Outubro
+### Figura 3: Exemplo de Previsão de Precipitação Acumulada - CFSv2
 
-![Climatologia](Figuras/climatologia_PRP_outubro.png)
-
-### Figura 3: Exemplo de Anomalia de Precipitação Mensal em mm
-
-![Anomalia mm](Figuras/anomalia_precipitacao_julho_2024.png)
-
-### Figura 3: Exemplo de Anomalia de Precipitação Mensal em Desvio Padrão
-
-![Anomalia desvio padrão](Figuras/brasil_anom_mai2.png)
+![CFS](Figuras/acumulado_cfsv2.png)
 
 ## Como Utilizar
 
