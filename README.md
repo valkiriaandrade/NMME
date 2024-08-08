@@ -28,15 +28,15 @@ Antes de executar os scripts, você precisará instalar as seguintes bibliotecas
 
 ### Figura 1: Exemplo de Previsão de Anomalia de Precipitação Mensal - ENSEMBLE
 
-<img src="Figuras/output_precipitacao_anomalia/precipitacao_anomalia_10_2024.png" alt="Anomalia Precipitação Mensal" width="600" height="400"/>
+<img src="Figuras/output_precipitacao_anomalia/precipitacao_anomalia_10_2024.png" alt="Anomalia Precipitação Mensal" width="600" height="600"/>
 
 ### Figura 2: Exemplo de Previsão de Anomalia de Temperatura Máxima Mensal - NMME
 
-<img src="Figuras/NMME_tmax_10-2024_brasil.png" alt="NMME tmax" width="600" height="400"/>
+<img src="Figuras/NMME_tmax_10-2024_brasil.png" alt="NMME tmax" width="600" height="600"/>
 
 ### Figura 3: Exemplo de Previsão de Precipitação Acumulada - CFSv2
 
-<img src="Figuras/acumulado_cfsv2.png" alt="CFS" width="600" height="400"/>
+<img src="Figuras/acumulado_cfsv2.png" alt="CFS" width="600" height="600"/>
 
 ## Como Utilizar
 
