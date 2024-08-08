@@ -1,10 +1,10 @@
 # NMME
 
-Este repositório contém scripts para a visualização dos dados de precipitação e temperatura do produto NMME da NOAA. 
+Este repositório contém scripts e dados para a plotagem de dados brutos de precipitação e temperatura do produto NMME da NOAA. O NMME (North American Multi-Model Ensemble) é um projeto que fornece previsões climáticas usando uma combinação de múltiplos modelos climáticos.
 
 ## Descrição
 
-O projeto MERGE-CPTEC visa no aprofundamento de visualização de dados de precipitação utilizando o produto MERGE do CPTEC/INPE. 
+O objetivo deste projeto é visualizar os dados brutos de precipitação e temperatura fornecidos pelo NMME da NOAA. Utilizamos diversas bibliotecas de plotagem em Python para criar gráficos e mapas que ajudam a interpretar os dados climáticos.
 
 ## Estrutura do Repositório
 
@@ -12,6 +12,18 @@ O projeto MERGE-CPTEC visa no aprofundamento de visualização de dados de preci
 - `Dados/`: Contém os dados brutos e processados.
 - `Figuras/`: Contém figuras geradas a partir dos dados.
 
+## Pré-requisitos
+
+Antes de executar os scripts, você precisará instalar as seguintes bibliotecas Python:
+
+- numpy
+- pandas
+- matplotlib
+- seaborn
+- cartopy
+- xarray
+- netCDF4
+  
 ## Imagens
 
 ### Figura 1: Exemplo de Precipitação Acumulada Mensal
@@ -38,12 +50,12 @@ O projeto MERGE-CPTEC visa no aprofundamento de visualização de dados de preci
 
 1. Clone este repositório:
     ```bash
-    git clone https://github.com/valkiriaandrade/MERGE-CPTEC.git
+    git clone https://github.com/valkiriaandrade/NMME.git
     ```
 
 2. Navegue até o diretório do projeto:
     ```bash
-    cd MERGE-CPTEC
+    cd NMME
     ```
 
 3. Execute os scripts conforme necessário.
