@@ -28,7 +28,7 @@ Antes de executar os scripts, você precisará instalar as seguintes bibliotecas
 
 ### Figura 1: Exemplo de Previsão de Anomalia de Precipitação Mensal - ENSEMBLE
 
-![Anomalia Precipitação Mensal](Figuras/precipitacao_anomalia_10_2024.png)
+![Anomalia Precipitação Mensal](Figuras/output_anomalia_10_2024/precipitacao_anomalia_10_2024.png)
 
 ### Figura 2: Exemplo de Previsão de Anomalia de Temperatura Máxima Mensal - NMME
 
