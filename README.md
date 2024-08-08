@@ -4,7 +4,7 @@ Este repositório contém scripts e dados para a plotagem de dados brutos de pre
 
 ## Descrição
 
-O objetivo deste projeto é visualizar os dados brutos de precipitação e temperatura fornecidos pelo NMME da NOAA. Utilizamos diversas bibliotecas de plotagem em Python para criar gráficos e mapas que ajudam a interpretar os dados climáticos.
+O objetivo deste projeto é visualizar os dados brutos de precipitação e temperatura fornecidos pelo NMME da NOAA. Utilizamos diversas bibliotecas de plotagem em Python para criar mapas que ajudam a interpretar os dados climáticos.
 
 ## Estrutura do Repositório
 
