@@ -19,7 +19,6 @@ Antes de executar os scripts, você precisará instalar as seguintes bibliotecas
 - numpy
 - pandas
 - matplotlib
-- seaborn
 - cartopy
 - xarray
 - netCDF4
