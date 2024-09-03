@@ -34,5 +34,5 @@ for month_idx in range(fcst.shape[0]):
     cf = ax.contourf(lon, lat, fcst[month_idx, :, :], transform=ccrs.PlateCarree(), cmap='RdBu_r', norm=norm, levels=np.arange(vmin, vmax + 1, 1))
     cbar = plt.colorbar(cf, ax=ax, orientation='vertical', ticks=np.arange(vmin, vmax + 1, 1))
     cbar.set_label('°C')
-    plt.savefig(f'NMME_tmax_{date_str}_brasil.png', bbox_inches='tight', pad_inches=0.0)  # Salvar a figura
+    plt.savefig(f'NMME_tmax_{date_str}_brasil.png', bbox_inches='tight', pad_inches=0.0)
     plt.close()
