@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nmme-maps"
+version = "0.1.0"
+description = "Processamento e visualização de dados NMME"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24", "xarray>=2023.1", "h5netcdf>=1.3", "h5py>=3.9", "scipy>=1.10", "matplotlib>=3.7", "cartopy>=0.22", "geopandas>=0.14", "shapely>=2"]
+
+[project.optional-dependencies]
+grib = ["eccodes>=2.43", "scipy>=1.10"]
+dev = ["pytest>=8", "ruff>=0.9"]
+
+[project.scripts]
+nmme-maps = "nmme_maps.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]

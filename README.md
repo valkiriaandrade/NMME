@@ -1,60 +1,62 @@
 # NMME
 
-Este repositório contém scripts e dados para a plotagem de dados brutos de precipitação e temperatura do produto NMME da NOAA. O NMME (North American Multi-Model Ensemble) é um projeto que fornece previsões climáticas usando uma combinação de múltiplos modelos climáticos.
+Projeto de Valkiria Andrade para processamento e visualização meteorológica.
+Código organizado em pacote Python, com configuração pela linha de comando,
+testes de regressão e verificações automáticas no GitHub Actions.
 
-## Descrição
+## Instalação
 
-O objetivo deste projeto é visualizar os dados brutos de precipitação e temperatura fornecidos pelo NMME da NOAA. Utilizamos diversas bibliotecas de plotagem em Python para criar mapas que ajudam a interpretar os dados climáticos.
+Python 3.10 ou superior. Na pasta deste repositório:
 
-## Estrutura do Repositório
+```bash
+python -m venv .venv
+# Windows PowerShell: .venv/Scripts/Activate.ps1
+# Linux/macOS: source .venv/bin/activate
+python -m pip install -e ".[dev]"
+```
 
-- `Scripts/`: Contém scripts utilizados para processar e analisar os dados.
-- `Dados/`: Contém os dados brutos e processados.
-- `Figuras/`: Contém figuras geradas a partir dos dados.
+WRF e MERGE precisam também de ecCodes: `python -m pip install -e ".[grib]"`.
+O pacote ecCodes oferece binários para Windows, Linux e macOS. NetCDF, cálculos e
+mapas não dependem desse extra. A leitura GRIB usa diretamente ecCodes, substituindo pygrib.
 
-## Pré-requisitos
+## Execução
 
-Antes de executar os scripts, você precisará instalar as seguintes bibliotecas Python:
+Exemplo (confira os nomes e metadados dos seus arquivos):
 
-- numpy
-- pandas
-- matplotlib
-- cartopy
-- xarray
-- netCDF4
-  
-## Imagens
+```bash
+nmme-maps --input Dados/CFSv2.prate.202404.ENSMEAN.fcst.nc --start 2024-04 --units mm/s --output output/cfsv2
+nmme-maps --help
+```
 
-### Figura 1: Exemplo de Previsão de Anomalia de Precipitação Mensal - ENSEMBLE
+Informe --start com o primeiro mês-alvo, após conferir as coordenadas do arquivo. --target-dim permite escolher a dimensão de previsão. A conversão usa o calendário gregoriano (28/29/30/31 dias), com unidade explicitamente informada; calendários 360_day exigem conversão prévia. Os produtos de anomalia recebem arquivos já contendo anomalias; não subtraem climatologia automaticamente. Membros são igualmente ponderados e grades incompatíveis são rejeitadas.
 
-<img src="Figuras/output_precipitacao_anomalia/precipitacao_anomalia_10_2024.png" alt="Anomalia Precipitação Mensal" width="600"/>
+`--shapefile caminho/BR_UF_2022.shp` aplica máscara e limites locais; o arquivo
+deve incluir seus arquivos auxiliares e CRS. ZIPs precisam ser extraídos.
+Sem shapefile, Cartopy pode baixar a cartografia Natural Earth no primeiro uso.
+`--title` configura o título e `--verbose` mostra detalhes dos erros.
+Mapas são salvos sem abrir janelas. A pasta de saída é criada automaticamente.
 
-### Figura 2: Exemplo de Previsão de Anomalia de Temperatura Máxima Mensal - NMME
+## Arquitetura e manutenção
 
-<img src="Figuras/NMME_tmax_10-2024_brasil.png" alt="NMME tmax" width="600"/>
+- `src/nmme_maps/io.py`: leitura, fechamento de recursos e validação de grades.
+- `src/nmme_maps/cli.py`: argumentos e coordenação do processamento.
+- `src/nmme_maps/plotting.py`: renderização e máscara geográfica.
+- `Scripts/`: entradas com os nomes históricos, usando o pacote instalado.
+- `tests/`: dados sintéticos e regressões independentes de serviços externos.
+- `Dados/` e `Figuras/`: acervo original preservado.
 
-### Figura 3: Exemplo de Previsão de Precipitação Acumulada - CFSv2
+As entradas históricas agora exigem os mesmos argumentos da CLI. Caminhos,
+datas e arquivos antes fixos no código devem ser informados explicitamente.
+Paletas e resolução foram padronizadas; figuras não são cópias pixel a pixel
+das versões antigas. Valores ausentes não são convertidos em zero.
 
-<img src="Figuras/acumulado_cfsv2.png" alt="CFS" width="600"/>
+```bash
+pytest -q
+ruff check src Scripts tests
+```
 
-## Como Utilizar
+A CI executa testes em Python 3.10 e 3.12. Os testes usam pequenos dados
+sintéticos e cartografia local; a interpretação científica e a cobertura do
+período devem ser conferidas com os dados operacionais.
 
-1. Clone este repositório:
-    ```bash
-    git clone https://github.com/valkiriaandrade/NMME.git
-    ```
-
-2. Navegue até o diretório do projeto:
-    ```bash
-    cd NMME
-    ```
-
-3. Execute os scripts conforme necessário.
-
-## Contribuições
-
-Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull requests.
-
-## Licença
-
-Este projeto está licenciado sob a Licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+Histórico, descrição científica e imagens: [README original](docs/README-original.md).
