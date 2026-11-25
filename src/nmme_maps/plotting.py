@@ -9,9 +9,12 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
+
+if TYPE_CHECKING:
+    from matplotlib.colors import Colormap
 
 DEFAULT_DPI = 200
 FIGSIZE = (10, 8)
@@ -58,12 +61,15 @@ def plot_map(
     title: str,
     label: str,
     levels: Sequence[float],
-    cmap: str,
+    cmap: str | Colormap,
     shapefile: str | Path | None = None,
     states: Sequence[str] | None = None,
     extent: Sequence[float] | None = None,
     credit: str | None = None,
     dpi: int = DEFAULT_DPI,
+    extend: str = "both",
+    class_labels: Sequence[str] | None = None,
+    extend_colours: bool = False,
 ) -> None:
     """Draw a gridded field on a map and save it as PNG.
 
@@ -74,12 +80,17 @@ def plot_map(
         title: map title (product, period and units).
         label: colorbar label, including units.
         levels: class boundaries for the colour scale.
-        cmap: Matplotlib colormap name.
+        cmap: Matplotlib colormap name or colormap object (e.g. a ``ListedColormap``).
         shapefile: optional boundaries used to mask the field and draw borders.
         states: optional ``SIGLA_UF`` codes to keep from the shapefile.
         extent: ``[lon_min, lon_max, lat_min, lat_max]``; defaults to the data extent.
         credit: small source credit printed in the bottom-right corner.
         dpi: output resolution.
+        extend: colorbar extension arrows: ``"both"``, ``"max"``, ``"min"`` or ``"neither"``.
+        class_labels: optional text for each colour class, shown at the class centres
+            instead of the numeric boundaries.
+        extend_colours: reserve distinct colours of ``cmap`` for the out-of-range
+            arrows, as ``contourf(..., extend=...)`` does.
 
     Raises:
         ValueError: on inconsistent grids, bad shapefiles or an all-missing field.
@@ -122,7 +133,7 @@ def plot_map(
                 crs=ccrs.PlateCarree(),
             )
             palette = plt.get_cmap(cmap)
-            norm = BoundaryNorm(levels, palette.N)
+            norm = BoundaryNorm(levels, palette.N, extend=extend if extend_colours else "neither")
             artist = ax.pcolormesh(
                 lon,
                 lat,
@@ -151,9 +162,18 @@ def plot_map(
             grid.top_labels = False
             grid.right_labels = False
             grid.xlabel_style = grid.ylabel_style = {"size": STYLE["xtick.labelsize"]}
-            fig.colorbar(
-                artist, ax=ax, label=label, ticks=levels, extend="both", shrink=0.85, pad=0.03
+            centres = [(a + b) / 2 for a, b in zip(levels[:-1], levels[1:], strict=True)]
+            colorbar = fig.colorbar(
+                artist,
+                ax=ax,
+                label=label,
+                ticks=centres if class_labels else levels,
+                extend=extend,
+                shrink=0.85,
+                pad=0.03,
             )
+            if class_labels:
+                colorbar.set_ticklabels(class_labels)
             ax.set_title(title, pad=10)
             if credit:
                 ax.text(

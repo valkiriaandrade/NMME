@@ -7,9 +7,8 @@ import logging
 from collections.abc import Sequence
 from pathlib import Path
 
-import numpy as np
-
 from .arguments import build_parser, execute
+from .colour_scales import colour_scale
 from .io import spatial
 from .labels import (
     SOURCE_CREDIT,
@@ -58,13 +57,7 @@ def run(args: argparse.Namespace) -> None:
         raise ValueError(
             "Precipitation needs an explicit rate unit; pass --units mm/s, mm/day or mm/month"
         )
-    levels = (
-        np.arange(-6.5, 7, 1)
-        if temperature
-        else np.arange(-150, 151, 30)
-        if anomaly
-        else np.arange(0, 261, 20)
-    )
+    scale = colour_scale(args.product)
     units = units_label("K") if temperature else "mm/month"
     if temperature:
         label = f"Temperature anomaly ({units})"
@@ -101,8 +94,9 @@ def run(args: argparse.Namespace) -> None:
             output,
             title=title,
             label=label,
-            levels=levels,
-            cmap="RdBu_r" if temperature else "BrBG" if anomaly else "YlGnBu",
+            levels=scale.levels,
+            cmap=scale.cmap,
+            extend=scale.extend,
             shapefile=args.shapefile,
             states=list(region.states) if region.states and args.shapefile else None,
             extent=list(region.extent),
