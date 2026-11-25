@@ -44,12 +44,12 @@ Before running the scripts, you will need to install the following Python librar
 
 1. Clone this repository:
     ```bash
-    git clone https://github.com/valkiriaandrade/NMME.git
+    git clone https://github.com/valkiriaandrade/nmme-seasonal-forecast-maps.git
     ```
 
 2. Go to the project folder:
     ```bash
-    cd NMME
+    cd nmme-seasonal-forecast-maps
     ```
 
 3. Run the scripts as needed.
