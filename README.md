@@ -61,4 +61,4 @@ CI runs the tests on Python 3.10 and 3.12. Tests use small synthetic data
 and local cartography; scientific interpretation and period coverage should be
 checked against operational data.
 
-History, scientific background and images: [original README (Portuguese)](docs/README-original.md).
+History, scientific background and images: [original README](docs/README-original.md).
