@@ -1,20 +1,20 @@
 # NMME
 
-Este repositório contém scripts e dados para a plotagem de dados brutos de precipitação e temperatura do produto NMME da NOAA. O NMME (North American Multi-Model Ensemble) é um projeto que fornece previsões climáticas usando uma combinação de múltiplos modelos climáticos.
+This repository contains scripts and data for plotting raw precipitation and temperature data from NOAA's NMME product. NMME (North American Multi-Model Ensemble) is a project that provides climate forecasts using a combination of multiple climate models.
 
-## Descrição
+## Description
 
-O objetivo deste projeto é visualizar os dados brutos de precipitação e temperatura fornecidos pelo NMME da NOAA. Utilizamos diversas bibliotecas de plotagem em Python para criar mapas que ajudam a interpretar os dados climáticos.
+The goal of this project is to visualise the raw precipitation and temperature data provided by NOAA's NMME. We use several Python plotting libraries to create maps that help interpret the climate data.
 
-## Estrutura do Repositório
+## Repository structure
 
-- `Scripts/`: Contém scripts utilizados para processar e analisar os dados.
-- `Dados/`: Contém os dados brutos e processados.
-- `Figuras/`: Contém figuras geradas a partir dos dados.
+- `Scripts/`: scripts used to process and analyse the data.
+- `Dados/`: raw and processed data.
+- `Figuras/`: figures generated from the data.
 
-## Pré-requisitos
+## Prerequisites
 
-Antes de executar os scripts, você precisará instalar as seguintes bibliotecas Python:
+Before running the scripts, you will need to install the following Python libraries:
 
 - numpy
 - pandas
@@ -23,38 +23,38 @@ Antes de executar os scripts, você precisará instalar as seguintes bibliotecas
 - xarray
 - netCDF4
 
-## Imagens
+## Images
 
-### Figura 1: Exemplo de Previsão de Anomalia de Precipitação Mensal - ENSEMBLE
+### Figure 1: Example of a monthly precipitation anomaly forecast - ENSEMBLE
 
-<img src="Figuras/output_precipitacao_anomalia/precipitacao_anomalia_10_2024.png" alt="Anomalia Precipitação Mensal" width="600"/>
+<img src="../Figuras/output_precipitacao_anomalia/precipitacao_anomalia_10_2024.png" alt="Monthly precipitation anomaly" width="600"/>
 
-### Figura 2: Exemplo de Previsão de Anomalia de Temperatura Máxima Mensal - NMME
+### Figure 2: Example of a monthly maximum temperature anomaly forecast - NMME
 
-<img src="Figuras/NMME_tmax_10-2024_brasil.png" alt="NMME tmax" width="600"/>
+<img src="../Figuras/NMME_tmax_10-2024_brasil.png" alt="NMME tmax" width="600"/>
 
-### Figura 3: Exemplo de Previsão de Precipitação Acumulada - CFSv2
+### Figure 3: Example of an accumulated precipitation forecast - CFSv2
 
-<img src="Figuras/acumulado_cfsv2.png" alt="CFS" width="600"/>
+<img src="../Figuras/acumulado_cfsv2.png" alt="CFS" width="600"/>
 
-## Como Utilizar
+## How to use
 
-1. Clone este repositório:
+1. Clone this repository:
     ```bash
     git clone https://github.com/valkiriaandrade/NMME.git
     ```
 
-2. Navegue até o diretório do projeto:
+2. Go to the project folder:
     ```bash
     cd NMME
     ```
 
-3. Execute os scripts conforme necessário.
+3. Run the scripts as needed.
 
-## Contribuições
+## Contributing
 
-Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull requests.
+Contributions are welcome! Feel free to open issues and pull requests.
 
-## Licença
+## License
 
-Este projeto está licenciado sob a Licença MIT. Veja o arquivo [LICENSE](../LICENSE) para mais detalhes.
+This project is licensed under the MIT License. See the [LICENSE](../LICENSE) file for details.
