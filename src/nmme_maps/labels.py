@@ -6,7 +6,7 @@ import calendar
 from collections.abc import Iterable
 from pathlib import Path
 
-SOURCE_CREDIT = "Data: NOAA NMME"
+SOURCE_CREDIT = "Data: NOAA CPC NMME"
 
 PRODUCT_NAMES: dict[str, str] = {
     "precipitation": "precipitation forecast",

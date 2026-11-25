@@ -36,13 +36,35 @@ forecasts up to 9–12 months ahead on a 1° global grid. Ensemble-mean forecast
 are distributed by the [IRI Data Library](https://iridl.ldeo.columbia.edu/SOURCES/.Models/.NMME/)
 and NOAA CPC.
 
-Sample inputs in [`data/`](data/):
+All files used here come from the **NOAA CPC NMME real-time archive**,
+https://ftp.cpc.ncep.noaa.gov/NMME/realtime_anom/ENSMEAN/ (public domain).
 
-| File / folder | Content |
-|---|---|
-| `CFSv2.prate.202404.ENSMEAN.fcst.nc` | CFSv2 precipitation rate (mm/s), April 2024 run, 9 target months |
-| `NMME.tmax.202407.ENSMEAN.anom.nc` | NMME maximum temperature anomaly (K), July 2024 run, 12 target months |
-| `nmme_202407_forecasts/*.prate.202407.ENSMEAN.fcst.nc` | Precipitation forecasts from 7 NMME models, July 2024 run |
+*Data: NOAA Climate Prediction Center – North American Multi-Model Ensemble.*
+
+| File / folder in `data/` | Content | In the repo? |
+|---|---|---|
+| `CFSv2.prate.202404.ENSMEAN.fcst.nc` | CFSv2 precipitation rate (mm/s), April 2024 run, 9 target months | committed sample |
+| `NMME.tmax.202407.ENSMEAN.anom.nc` | NMME maximum temperature anomaly (K), July 2024 run, 12 target months | committed sample |
+| `nmme_202407_forecasts/*.prate.202407.ENSMEAN.fcst.nc` | Precipitation forecasts from 7 NMME models, July 2024 run | committed sample |
+| `nmme_202407_anomalies/NMME.prate.202407.ENSMEAN.anom.nc` | NMME ensemble precipitation anomaly (mm/s), July 2024 run | `make data` |
+
+## Get the data
+
+```bash
+make data                          # or: python scripts/download_data.py
+```
+
+This downloads from NOAA CPC exactly what the README examples and `make figures` need, and
+skips files that are already there. Other runs, variables or models:
+
+```bash
+python scripts/download_data.py --run 202410 --variable prate tmax --kind anom --model NMME
+python scripts/download_data.py --run 202410 --kind fcst --model CFSv2 GFDL_SPEAR
+python scripts/download_data.py --dry-run          # only list the URLs
+```
+
+Custom downloads go to `data/nmme_<YYYYMM>_<anomalies|forecasts>/`. Downloaded files are
+git-ignored, and a file missing on the server is reported by name.
 
 ## Install
 
@@ -59,6 +81,8 @@ python -m pip install -e ".[dev]"  # or: make install
 ## Quick start
 
 ```bash
+make data                          # fetch the files that are not committed
+
 # CFSv2 monthly precipitation for every target month of the April 2024 run
 nmme-maps --product precipitation --input data/CFSv2.prate.202404.ENSMEAN.fcst.nc \
           --start 2024-04 --units mm/s --output output/cfsv2
@@ -67,6 +91,9 @@ nmme-maps --product precipitation --input data/CFSv2.prate.202404.ENSMEAN.fcst.n
 nmme-maps --product temperature-anomaly --input data/NMME.tmax.202407.ENSMEAN.anom.nc \
           --start 2024-07 --months 2024-10 2024-11 2024-12 --output output/tmax
 
+# NMME precipitation anomaly, July 2024 run (needs `make data`)
+nmme-maps --product precipitation-anomaly --units mm/s --start 2024-07           --input data/nmme_202407_anomalies/NMME.prate.202407.ENSMEAN.anom.nc --output output/panom
+
 # 7-model ensemble mean precipitation of the July 2024 run
 nmme-maps --product precipitation --input data/nmme_202407_forecasts/*.nc \
           --start 2024-07 --units mm/s --output output/ensemble
@@ -74,6 +101,8 @@ nmme-maps --product precipitation --input data/nmme_202407_forecasts/*.nc \
 # Rebuild every figure in figures/
 make figures                       # or: python scripts/make_figures.py
 ```
+
+Monthly totals use the actual number of days in each month (28–31), not a fixed 30 days.
 
 Always check that `--start` is the first **target** month in the file, not the initialisation
 month. Anomaly products expect files that already contain anomalies; no climatology is
@@ -107,10 +136,11 @@ Shortcuts in `scripts/` preset `--product`: `cfsv2_precipitation.py`,
 
 ```
 NMME/
-├── data/                  # sample NMME / CFSv2 forecasts
+├── data/                  # sample NMME / CFSv2 files; `make data` adds the rest
 ├── figures/               # published maps (rebuilt with `make figures`)
 │   └── precipitation_anomaly/
 ├── scripts/
+│   ├── download_data.py   # downloads NMME files from NOAA CPC (`make data`)
 │   ├── make_figures.py    # regenerates every figure in figures/
 │   └── *.py               # shortcuts for the CLI
 ├── src/nmme_maps/
@@ -120,7 +150,7 @@ NMME/
 │   ├── plotting.py        # shared map style and rendering
 │   ├── labels.py          # titles, model names and unit labels
 │   └── regions.py         # map domains and region aliases
-├── tests/                 # pytest suite (synthetic data, runs offline)
+├── tests/                 # pytest suite (synthetic data; network access is blocked)
 ├── docs/                  # validation notes and project history
 ├── Makefile
 └── pyproject.toml
@@ -132,6 +162,7 @@ NMME/
 make install   # editable install with dev tools + pre-commit hooks (ruff)
 make test      # pytest with coverage report
 make lint      # ruff check + ruff format --check
+make data      # download the NMME files from NOAA CPC (manual step, never run in CI)
 make figures   # regenerate every figure in figures/ from data/
 ```
 
@@ -139,14 +170,13 @@ On Windows without `make`, run the commands from the [Makefile](Makefile) direct
 `python -m pytest -q --cov` or `python scripts/make_figures.py`. The first map run without a
 shapefile downloads Natural Earth borders (cached afterwards).
 
-The nine precipitation-anomaly maps in `figures/precipitation_anomaly/` were made from NMME
-anomaly files that are not included in this repository, so `make figures` keeps them as they
-are; see [docs/VALIDATION.md](docs/VALIDATION.md).
+Tests and CI never download anything: they use the committed samples and synthetic data, and
+a test fixture blocks network access. `make data` is a manual step.
 
 ## License
 
-[MIT](LICENSE) © Valkiria Andrade. NMME data are provided by NOAA and the participating
-modelling centres.
+[MIT](LICENSE) © Valkiria Andrade. NMME data: NOAA Climate Prediction Center and the
+participating modelling centres (public domain).
 
 ---
 

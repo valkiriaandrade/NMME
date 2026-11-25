@@ -53,8 +53,8 @@ FIGURE_SETS = [
         ],
         months=TMAX_MONTHS,
     ),
-    # Needs precipitation ANOMALY files; the repository only has absolute forecasts
-    # (data/nmme_202407_forecasts/*.fcst.nc), so this set is skipped and kept as-is.
+    # NMME ensemble precipitation ANOMALY of the July 2024 run (NOAA CPC); not committed,
+    # fetched by `make data` into data/nmme_202407_anomalies/.
     FigureSet(
         "NMME precipitation anomaly, Jul 2024 - Mar 2025",
         ["nmme_202407_anomalies"],
@@ -85,7 +85,7 @@ def build(data_dir: Path, figures_dir: Path, dpi: int) -> list[str]:
         missing = [str(p) for p in inputs if not p.exists()] or ([] if inputs else ["inputs"])
         if missing:
             logger.warning(
-                "Skipping %s (kept existing images): missing %s",
+                "Skipping %s (kept existing images): missing %s; run `make data`",
                 figure_set.name,
                 ", ".join(missing),
             )
