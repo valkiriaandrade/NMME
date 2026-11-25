@@ -1,64 +1,153 @@
 # NMME
 
-Weather data processing and visualisation project by Valkiria Andrade.
-The code is organised as a Python package with a command-line interface,
-regression tests and automated checks on GitHub Actions.
+**Seasonal forecast maps of Brazil from the North American Multi-Model Ensemble (NMME): monthly precipitation, precipitation anomaly and temperature anomaly, one map per target month.**
 
-<img src="Figuras/NMME_tmax_01-2025_brasil.png" alt="NMME maximum temperature forecast map for Brazil" width="480"/>
+[![CI](https://github.com/valkiriaandrade/NMME/actions/workflows/tests.yml/badge.svg)](https://github.com/valkiriaandrade/NMME/actions/workflows/tests.yml)
+![Python](https://img.shields.io/badge/python-3.10%20%7C%203.12-blue)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-## Installation
+## Gallery
 
-Python 3.10 or later. From this repository's folder:
+| | |
+|:-:|:-:|
+| <img src="figures/nmme_tmax_anomaly_2024-10.png" alt="NMME maximum temperature anomaly forecast for Brazil, October 2024" width="420"/> | <img src="figures/cfsv2_precipitation_2024-05.png" alt="CFSv2 precipitation forecast for Brazil, May 2024" width="420"/> |
+| NMME maximum temperature anomaly forecast, October 2024 (July 2024 run) | CFSv2 monthly precipitation forecast, May 2024 (April 2024 run) |
+| <img src="figures/nmme_tmax_anomaly_2025-01.png" alt="NMME maximum temperature anomaly forecast for Brazil, January 2025" width="420"/> | <img src="figures/precipitation_anomaly/nmme_precipitation_anomaly_2024-10.png" alt="NMME precipitation anomaly forecast for Brazil, October 2024" width="420"/> |
+| NMME maximum temperature anomaly forecast, January 2025 | NMME ensemble precipitation anomaly forecast, October 2024 |
+
+## What it does
+
+- Reads one or more NMME NetCDF files (one per model), checks that the grids match and
+  averages them with equal weights (missing values propagate).
+- Draws **one map per forecast target month**:
+  - `precipitation`: monthly total in mm/month, converted from the file's rate (mm/s, mm/day)
+    using the real number of days in each month (leap years included);
+  - `precipitation-anomaly`: the same conversion applied to anomaly files;
+  - `temperature-anomaly`: anomaly in °C (a 1 K difference equals 1 °C).
+- Titles name the model, quantity, region, target month and units; maps have coastline,
+  country and state borders, lat/lon labels and a source credit.
+
+## Data source
+
+The [**North American Multi-Model Ensemble (NMME)**](https://www.cpc.ncep.noaa.gov/products/NMME/)
+is a seasonal prediction system coordinated by NOAA. Each month several coupled climate
+models (CFSv2, CanESM5, GEM5.2-NEMO, GFDL SPEAR, NASA GEOS5v2, NCAR CCSM4, NCAR CESM1, …) issue
+forecasts up to 9–12 months ahead on a 1° global grid. Ensemble-mean forecasts and anomalies
+are distributed by the [IRI Data Library](https://iridl.ldeo.columbia.edu/SOURCES/.Models/.NMME/)
+and NOAA CPC.
+
+Sample inputs in [`data/`](data/):
+
+| File / folder | Content |
+|---|---|
+| `CFSv2.prate.202404.ENSMEAN.fcst.nc` | CFSv2 precipitation rate (mm/s), April 2024 run, 9 target months |
+| `NMME.tmax.202407.ENSMEAN.anom.nc` | NMME maximum temperature anomaly (K), July 2024 run, 12 target months |
+| `nmme_202407_forecasts/*.prate.202407.ENSMEAN.fcst.nc` | Precipitation forecasts from 7 NMME models, July 2024 run |
+
+## Install
+
+Python 3.10 or later.
 
 ```bash
+git clone https://github.com/valkiriaandrade/NMME.git
+cd NMME
 python -m venv .venv
-# Windows PowerShell: .venv/Scripts/Activate.ps1
-# Linux/macOS: source .venv/bin/activate
-python -m pip install -e ".[dev]"
+source .venv/bin/activate          # Windows PowerShell: .venv\Scripts\Activate.ps1
+python -m pip install -e ".[dev]"  # or: make install
 ```
 
-WRF and MERGE also need ecCodes: `python -m pip install -e ".[grib]"`.
-The ecCodes package ships binaries for Windows, Linux and macOS. NetCDF, calculations and
-maps do not depend on this extra. GRIB files are read directly with ecCodes, replacing pygrib.
-
-## Usage
-
-Example (check your files' names and metadata):
+## Quick start
 
 ```bash
-nmme-maps --input Dados/CFSv2.prate.202404.ENSMEAN.fcst.nc --start 2024-04 --units mm/s --output output/cfsv2
-nmme-maps --help
+# CFSv2 monthly precipitation for every target month of the April 2024 run
+nmme-maps --product precipitation --input data/CFSv2.prate.202404.ENSMEAN.fcst.nc \
+          --start 2024-04 --units mm/s --output output/cfsv2
+
+# NMME maximum temperature anomaly, only October-December 2024
+nmme-maps --product temperature-anomaly --input data/NMME.tmax.202407.ENSMEAN.anom.nc \
+          --start 2024-07 --months 2024-10 2024-11 2024-12 --output output/tmax
+
+# 7-model ensemble mean precipitation of the July 2024 run
+nmme-maps --product precipitation --input data/nmme_202407_forecasts/*.nc \
+          --start 2024-07 --units mm/s --output output/ensemble
+
+# Rebuild every figure in figures/
+make figures                       # or: python scripts/make_figures.py
 ```
 
-Set `--start` to the first target month after checking the file's coordinates. `--target-dim` lets you choose the forecast dimension. Unit conversion uses the Gregorian calendar (28/29/30/31 days), with the unit given explicitly; 360_day calendars must be converted beforehand. Anomaly products expect files that already contain anomalies; they do not subtract a climatology automatically. Members are equally weighted and incompatible grids are rejected.
+Always check that `--start` is the first **target** month in the file, not the initialisation
+month. Anomaly products expect files that already contain anomalies; no climatology is
+subtracted.
 
-`--shapefile path/BR_UF_2022.shp` applies a mask and local boundaries; the file
-must come with its auxiliary files and CRS. ZIP files must be extracted first.
-Without a shapefile, Cartopy may download Natural Earth cartography on first use.
-`--title` sets the title and `--verbose` shows error details.
-Maps are saved without opening windows. The output folder is created automatically.
+## CLI options
 
-## Architecture and maintenance
+`nmme-maps --help` prints the full list.
 
-- `src/nmme_maps/io.py`: reading, resource cleanup and grid validation.
-- `src/nmme_maps/cli.py`: arguments and processing coordination.
-- `src/nmme_maps/plotting.py`: rendering and geographic masking.
-- `Scripts/`: entry points with the historical names, using the installed package.
-- `tests/`: synthetic data and regression tests independent of external services.
-- `Dados/` and `Figuras/`: original data and figures, preserved.
+| Option | Default | Description |
+|---|---|---|
+| `--input FILE [FILE ...]` | *required* | One or more NetCDF members (averaged with equal weights) |
+| `--start YYYY-MM` | *required* | First target month in the file |
+| `--output DIR` | *required* | Output directory (one PNG per target month) |
+| `--product` | `precipitation` | `precipitation`, `precipitation-anomaly` or `temperature-anomaly` |
+| `--units` | – | Precipitation rate unit in the file: `mm/s`, `mm/day` or `mm/month` (required for precipitation products) |
+| `--months YYYY-MM ...` | all | Only plot these target months |
+| `--region {brazil,north,south}` | `brazil` | Map domain; the Portuguese aliases `brasil`, `norte` and `sul` are also accepted |
+| `--filename TEMPLATE` | `{product}_{year}-{month:02d}.png` | Output file name template |
+| `--variable NAME` | `fcst` | NetCDF variable |
+| `--target-dim NAME` | `target` | Forecast-month dimension |
+| `--shapefile FILE` | – | Optional state boundaries (`.shp` or zipped) to mask the field; by default Natural Earth borders are drawn |
+| `--title TEXT` | built from the data | Custom map title |
+| `--dpi N` | `200` | PNG resolution |
+| `--verbose` | off | Debug logging and full tracebacks |
 
-The historical entry points now require the same arguments as the CLI. Paths,
-dates and files that used to be hard-coded must be passed explicitly.
-Palettes and resolution were standardised; figures are not pixel-perfect copies
-of the old versions. Missing values are not converted to zero.
+Shortcuts in `scripts/` preset `--product`: `cfsv2_precipitation.py`,
+`precipitation_anomaly.py` and `nmme_max_temperature_anomaly.py`.
+
+## Project structure
+
+```
+NMME/
+├── data/                  # sample NMME / CFSv2 forecasts
+├── figures/               # published maps (rebuilt with `make figures`)
+│   └── precipitation_anomaly/
+├── scripts/
+│   ├── make_figures.py    # regenerates every figure in figures/
+│   └── *.py               # shortcuts for the CLI
+├── src/nmme_maps/
+│   ├── cli.py             # command-line interface
+│   ├── processing.py      # target months, unit conversion, ensemble mean
+│   ├── io.py              # NetCDF reading and grid checks
+│   ├── plotting.py        # shared map style and rendering
+│   ├── labels.py          # titles, model names and unit labels
+│   └── regions.py         # map domains and region aliases
+├── tests/                 # pytest suite (synthetic data, runs offline)
+├── docs/                  # validation notes and project history
+├── Makefile
+└── pyproject.toml
+```
+
+## Development
 
 ```bash
-pytest -q
-ruff check src Scripts tests
+make install   # editable install with dev tools + pre-commit hooks (ruff)
+make test      # pytest with coverage report
+make lint      # ruff check + ruff format --check
+make figures   # regenerate every figure in figures/ from data/
 ```
 
-CI runs the tests on Python 3.10 and 3.12. Tests use small synthetic data
-and local cartography; scientific interpretation and period coverage should be
-checked against operational data.
+On Windows without `make`, run the commands from the [Makefile](Makefile) directly, e.g.
+`python -m pytest -q --cov` or `python scripts/make_figures.py`. The first map run without a
+shapefile downloads Natural Earth borders (cached afterwards).
 
-History, scientific background and images: [original README](docs/README-original.md).
+The nine precipitation-anomaly maps in `figures/precipitation_anomaly/` were made from NMME
+anomaly files that are not included in this repository, so `make figures` keeps them as they
+are; see [docs/VALIDATION.md](docs/VALIDATION.md).
+
+## License
+
+[MIT](LICENSE) © Valkiria Andrade. NMME data are provided by NOAA and the participating
+modelling centres.
+
+---
+
+Project history: [original README](docs/README-original.md).

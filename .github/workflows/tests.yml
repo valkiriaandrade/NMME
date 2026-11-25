@@ -1,11 +1,15 @@
-name: Python checks
-on: [push, pull_request]
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
 permissions:
   contents: read
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python: ['3.10', '3.12']
     steps:
@@ -13,6 +17,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      - run: python -m pip install -e '.[dev,grib]'
-      - run: ruff check src Scripts tests
-      - run: pytest -q
+          cache: pip
+      - run: python -m pip install -e '.[dev]'
+      - run: make lint
+      - run: python -m pytest -q --cov --cov-report=term-missing --cov-report=xml
+      - uses: actions/upload-artifact@v4
+        if: matrix.python == '3.12'
+        with:
+          name: coverage-report
+          path: coverage.xml

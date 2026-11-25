@@ -8,7 +8,7 @@ from nmme_maps.io import align_exact, files_in, read_field, spatial
 
 
 def test_empty_directory(tmp_path):
-    with pytest.raises(ValueError, match="Nenhum"):
+    with pytest.raises(ValueError, match="No .nc files"):
         files_in(tmp_path, ".nc")
 
 
@@ -17,16 +17,16 @@ def test_missing_variable_and_loaded_data(tmp_path):
     xr.Dataset(
         {"t": (("lat", "lon"), [[1.0, 2.0], [3.0, 4.0]])}, coords={"lat": [0, 1], "lon": [10, 11]}
     ).to_netcdf(path, engine="h5netcdf")
-    with pytest.raises(ValueError, match="ausente"):
+    with pytest.raises(ValueError, match="missing"):
         read_field(path, "missing")
     field = read_field(path, "t")
-    path.unlink()  # Handle já fechado, inclusive no Windows.
+    path.unlink()  # The file handle is already closed, also on Windows.
     np.testing.assert_array_equal(field, [[1, 2], [3, 4]])
 
 
 def test_spatial_preserves_singleton_lat_and_rejects_ambiguous_time():
     field = xr.DataArray(np.ones((2, 1, 2)), dims=("time", "lat", "lon"))
-    with pytest.raises(ValueError, match="índice"):
+    with pytest.raises(ValueError, match="single index"):
         spatial(field)
     assert spatial(field.isel(time=[0])).shape == (1, 2)
 
@@ -59,7 +59,7 @@ def test_offline_map_and_figure_cleanup(tmp_path):
         [-1, 1],
         [359, 1],
         output,
-        title="Teste",
+        title="Test",
         label="mm",
         levels=[0, 2, 5],
         cmap="BrBG",
