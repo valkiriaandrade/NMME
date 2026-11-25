@@ -1,6 +1,6 @@
 PYTHON ?= python
 
-.PHONY: install test lint format figures
+.PHONY: install test lint format data figures
 
 install:  ## Install the package with development tools and the git hooks
 	$(PYTHON) -m pip install -e ".[dev]"
@@ -17,5 +17,8 @@ format:  ## Apply ruff fixes and formatting
 	$(PYTHON) -m ruff check --fix .
 	$(PYTHON) -m ruff format .
 
-figures:  ## Regenerate every figure in figures/ from data/
+data:  ## Download the NMME files the figures need (NOAA CPC)
+	$(PYTHON) scripts/download_data.py
+
+figures:  ## Regenerate every figure in figures/ from data/ (run `make data` first)
 	$(PYTHON) scripts/make_figures.py

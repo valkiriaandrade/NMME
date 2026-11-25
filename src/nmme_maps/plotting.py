@@ -134,13 +134,15 @@ def plot_map(
             )
             palette = plt.get_cmap(cmap)
             norm = BoundaryNorm(levels, palette.N, extend=extend if extend_colours else "neither")
-            artist = ax.pcolormesh(
+            # Smooth filled contours, as in the original scripts (no per-cell blocks).
+            artist = ax.contourf(
                 lon,
                 lat,
                 values,
+                levels=levels,
                 cmap=palette,
                 norm=norm,
-                shading="auto",
+                extend=extend,
                 transform=ccrs.PlateCarree(),
             )
             if borders is not None:

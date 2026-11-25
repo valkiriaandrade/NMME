@@ -11,3 +11,9 @@ output/
 .coverage
 coverage.xml
 htmlcov/
+
+# NMME files downloaded by `make data` (sample files already committed stay tracked)
+data/nmme_*_anomalies/
+data/nmme_*_forecasts/
+data/*.ENSMEAN.*.nc
+*.part
