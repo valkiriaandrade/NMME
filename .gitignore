@@ -8,3 +8,6 @@ build/
 dist/
 output/
 .env
+.coverage
+coverage.xml
+htmlcov/

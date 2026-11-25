@@ -5,3 +5,9 @@
 *.yml text eol=lf
 *.cpp text eol=lf
 *.h text eol=lf
+Makefile text eol=lf
+*.yaml text eol=lf
+LICENSE text eol=lf
+*.png binary
+*.nc binary
+*.zip binary
