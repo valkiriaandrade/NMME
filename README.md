@@ -1,8 +1,8 @@
-# NMME
+# NMME Seasonal Forecast Maps
 
 **Seasonal forecast maps of Brazil from the North American Multi-Model Ensemble (NMME): monthly precipitation, precipitation anomaly and temperature anomaly, one map per target month.**
 
-[![CI](https://github.com/valkiriaandrade/NMME/actions/workflows/tests.yml/badge.svg)](https://github.com/valkiriaandrade/NMME/actions/workflows/tests.yml)
+[![CI](https://github.com/valkiriaandrade/nmme-seasonal-forecast-maps/actions/workflows/tests.yml/badge.svg)](https://github.com/valkiriaandrade/nmme-seasonal-forecast-maps/actions/workflows/tests.yml)
 ![Python](https://img.shields.io/badge/python-3.10%20%7C%203.12-blue)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -71,8 +71,8 @@ git-ignored, and a file missing on the server is reported by name.
 Python 3.10 or later.
 
 ```bash
-git clone https://github.com/valkiriaandrade/NMME.git
-cd NMME
+git clone https://github.com/valkiriaandrade/nmme-seasonal-forecast-maps.git
+cd nmme-seasonal-forecast-maps
 python -m venv .venv
 source .venv/bin/activate          # Windows PowerShell: .venv\Scripts\Activate.ps1
 python -m pip install -e ".[dev]"  # or: make install
