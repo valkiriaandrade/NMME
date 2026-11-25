@@ -102,6 +102,8 @@ nmme-maps --product precipitation --input data/nmme_202407_forecasts/*.nc \
 make figures                       # or: python scripts/make_figures.py
 ```
 
+Monthly totals use the actual number of days in each month (28–31), not a fixed 30 days.
+
 Always check that `--start` is the first **target** month in the file, not the initialisation
 month. Anomaly products expect files that already contain anomalies; no climatology is
 subtracted.
