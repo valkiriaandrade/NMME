@@ -7,21 +7,6 @@ from pathlib import Path
 import xarray as xr
 
 
-def files_in(directory: str | Path, suffix: str) -> list[Path]:
-    """Return the files in ``directory`` ending with ``suffix``, sorted by name.
-
-    Raises:
-        ValueError: if no file matches.
-    """
-    directory = Path(directory)
-    if not directory.is_dir():
-        raise ValueError(f"Input directory not found: {directory}")
-    files = sorted(directory.glob(f"*{suffix}"))
-    if not files:
-        raise ValueError(f"No {suffix} files found in {directory}; check the input directory")
-    return files
-
-
 def read_field(path: str | Path, variable: str) -> xr.DataArray:
     """Load ``variable`` from a NetCDF file into memory and close the file.
 
@@ -72,10 +57,3 @@ def align_exact(*fields: xr.DataArray) -> tuple[xr.DataArray, ...]:
     if any(f.dims != fields[0].dims for f in fields[1:]):
         raise ValueError("Incompatible dimensions between files; grids must match exactly")
     return xr.align(*fields, join="exact")
-
-
-def save_netcdf(field: xr.DataArray, output: str | Path) -> None:
-    """Write ``field`` to ``output``, creating parent folders as needed."""
-    output = Path(output)
-    output.parent.mkdir(parents=True, exist_ok=True)
-    field.to_netcdf(output, engine="h5netcdf")

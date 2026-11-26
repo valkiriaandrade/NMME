@@ -95,13 +95,12 @@ def plot_map(
     Raises:
         ValueError: on inconsistent grids, bad shapefiles or an all-missing field.
     """
-    import matplotlib
-
-    matplotlib.use("Agg")
+    # A bare Figure renders with Agg without touching pyplot or the caller's backend.
     import cartopy.crs as ccrs
     import cartopy.feature as cfeature
-    import matplotlib.pyplot as plt
+    import matplotlib as mpl
     from matplotlib.colors import BoundaryNorm
+    from matplotlib.figure import Figure
 
     values = np.ma.asarray(values, dtype=float).filled(np.nan)
     lon = (np.asarray(lon) + 180) % 360 - 180
@@ -125,71 +124,69 @@ def plot_map(
         raise ValueError("No valid data inside the selected area; check region and inputs")
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
-    with plt.rc_context(STYLE):
-        fig, ax = plt.subplots(figsize=FIGSIZE, subplot_kw={"projection": ccrs.PlateCarree()})
-        try:
-            ax.set_extent(
-                extent or [float(lon.min()), float(lon.max()), float(lat.min()), float(lat.max())],
-                crs=ccrs.PlateCarree(),
+    with mpl.rc_context(STYLE):
+        fig = Figure(figsize=FIGSIZE)
+        ax = fig.add_subplot(projection=ccrs.PlateCarree())
+        ax.set_extent(
+            extent or [float(lon.min()), float(lon.max()), float(lat.min()), float(lat.max())],
+            crs=ccrs.PlateCarree(),
+        )
+        palette = mpl.colormaps[cmap] if isinstance(cmap, str) else cmap
+        norm = BoundaryNorm(levels, palette.N, extend=extend if extend_colours else "neither")
+        # Smooth filled contours, as in the original scripts (no per-cell blocks).
+        artist = ax.contourf(
+            lon,
+            lat,
+            values,
+            levels=levels,
+            cmap=palette,
+            norm=norm,
+            extend=extend,
+            transform=ccrs.PlateCarree(),
+        )
+        if borders is not None:
+            # State polygons: their outer edge is the coastline / national border.
+            ax.add_geometries(
+                borders.geometry,
+                ccrs.PlateCarree(),
+                facecolor="none",
+                edgecolor="black",
+                linewidth=0.5,
             )
-            palette = plt.get_cmap(cmap)
-            norm = BoundaryNorm(levels, palette.N, extend=extend if extend_colours else "neither")
-            # Smooth filled contours, as in the original scripts (no per-cell blocks).
-            artist = ax.contourf(
-                lon,
-                lat,
-                values,
-                levels=levels,
-                cmap=palette,
-                norm=norm,
-                extend=extend,
-                transform=ccrs.PlateCarree(),
+        else:
+            ax.coastlines(resolution="50m", linewidth=0.6)
+            ax.add_feature(cfeature.BORDERS, linewidth=0.6)
+            ax.add_feature(cfeature.STATES, linewidth=0.3, edgecolor="dimgray")
+        grid = ax.gridlines(
+            draw_labels=True, linewidth=0.3, color="gray", alpha=0.6, linestyle="--"
+        )
+        grid.top_labels = False
+        grid.right_labels = False
+        grid.xlabel_style = grid.ylabel_style = {"size": STYLE["xtick.labelsize"]}
+        centres = [(a + b) / 2 for a, b in zip(levels[:-1], levels[1:], strict=True)]
+        colorbar = fig.colorbar(
+            artist,
+            ax=ax,
+            label=label,
+            ticks=centres if class_labels else levels,
+            extend=extend,
+            shrink=0.85,
+            pad=0.03,
+        )
+        if class_labels:
+            colorbar.set_ticklabels(class_labels)
+        ax.set_title(title, pad=10)
+        if credit:
+            ax.text(
+                0.99,
+                0.01,
+                credit,
+                transform=ax.transAxes,
+                ha="right",
+                va="bottom",
+                fontsize=8,
+                color="dimgray",
+                bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.7, "pad": 2},
+                zorder=10,
             )
-            if borders is not None:
-                # State polygons: their outer edge is the coastline / national border.
-                ax.add_geometries(
-                    borders.geometry,
-                    ccrs.PlateCarree(),
-                    facecolor="none",
-                    edgecolor="black",
-                    linewidth=0.5,
-                )
-            else:
-                ax.coastlines(resolution="50m", linewidth=0.6)
-                ax.add_feature(cfeature.BORDERS, linewidth=0.6)
-                ax.add_feature(cfeature.STATES, linewidth=0.3, edgecolor="dimgray")
-            grid = ax.gridlines(
-                draw_labels=True, linewidth=0.3, color="gray", alpha=0.6, linestyle="--"
-            )
-            grid.top_labels = False
-            grid.right_labels = False
-            grid.xlabel_style = grid.ylabel_style = {"size": STYLE["xtick.labelsize"]}
-            centres = [(a + b) / 2 for a, b in zip(levels[:-1], levels[1:], strict=True)]
-            colorbar = fig.colorbar(
-                artist,
-                ax=ax,
-                label=label,
-                ticks=centres if class_labels else levels,
-                extend=extend,
-                shrink=0.85,
-                pad=0.03,
-            )
-            if class_labels:
-                colorbar.set_ticklabels(class_labels)
-            ax.set_title(title, pad=10)
-            if credit:
-                ax.text(
-                    0.99,
-                    0.01,
-                    credit,
-                    transform=ax.transAxes,
-                    ha="right",
-                    va="bottom",
-                    fontsize=8,
-                    color="dimgray",
-                    bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.7, "pad": 2},
-                    zorder=10,
-                )
-            fig.savefig(output, dpi=dpi, bbox_inches="tight", pad_inches=0.15)
-        finally:
-            plt.close(fig)
+        fig.savefig(output, dpi=dpi, bbox_inches="tight", pad_inches=0.15)

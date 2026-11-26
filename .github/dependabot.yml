@@ -1,0 +1,8 @@
+version: 2
+updates:
+  # Keeps the GitHub Actions used by CI up to date. Python dependencies are ranges in
+  # pyproject.toml; ruff is pinned in pyproject.toml and .pre-commit-config.yaml together.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

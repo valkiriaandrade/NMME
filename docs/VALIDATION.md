@@ -6,16 +6,19 @@
 - May uses 31 days, February accounts for leap years and December rolls over the year.
 - Editable install of the package and Ruff checks executed.
 
-The user provides the target month and the unit: the initialisation month is not assumed
-to be the validity month. Non-Gregorian calendars are not converted automatically.
+At that stage the user provided the first target month and the unit; since v0.3.0 both are
+read from the file (see below). Non-Gregorian calendars are not converted automatically.
 Temperature anomalies in K have the same numerical magnitude in °C.
 Absolute forecast files must not be used as anomaly files.
 
 ## English translation and figure regeneration (v0.2.0)
 
 - Folders and files renamed to English; code, CLI help, messages, titles and labels
-  translated. Unit conversion, ensemble mean, palettes (`YlGnBu`, `BrBG`, `RdBu_r`) and
-  class levels are unchanged.
+  translated. Unit conversion and ensemble mean are unchanged. The colour scales are those of
+  the original scripts (restored in commit 9b5c932, "Restore the original colour scales", after a first
+  English version that used `YlGnBu`): precipitation `jet`, 0–240 mm/month every 20;
+  precipitation anomaly `BrBG`, −150…150 every 30; temperature anomaly `RdBu_r`, −6.5…6.5 °C
+  every 1.
 - Regenerated with `make figures`: `figures/cfsv2_precipitation_2024-05.png` (April 2024
   run) and the nine `figures/nmme_tmax_anomaly_YYYY-MM.png` maps (July 2024 run).
 - Not regenerated: the nine `figures/precipitation_anomaly/*.png` maps. They need
@@ -33,7 +36,8 @@ Absolute forecast files must not be used as anomaly files.
 - The nine precipitation-anomaly maps are now regenerated from that file. Evidence that
   it is the source of the original maps:
   - the original script averaged every file in a local `fcst` folder (×30 days) and
-    started the month labels at 07/2024; the committed `Dados/fcst` holds the absolute
+    started the month labels at 07/2024; its `Dados/fcst` folder (now
+    `data/nmme_202407_forecasts/`) holds the absolute
     forecasts, but the original maps show negative values, so they were made from the
     anomaly files of the same July 2024 run;
   - the CPC NMME ensemble anomaly equals the mean of the seven model anomalies exactly;
@@ -45,3 +49,23 @@ Absolute forecast files must not be used as anomaly files.
 - Monthly totals use each month's real length (since v0.2), not the fixed 30 days of the
   original script.
 - Maps are drawn with filled contours (`contourf`) as in the original scripts.
+
+## Code review fixes (v0.3.0, 2026-11-26)
+
+- Target months come from the file's `target` axis (months since 1960-01). In every NOAA CPC
+  file used here the first target is the initialisation month: CFSv2 April 2024 run,
+  `target[0] = 771` = April 2024; NMME July 2024 runs (tmax and prate anomalies, seven model
+  forecasts), `target[0] = 774` = July 2024. The README used to say that `--start` was "not the
+  initialisation month"; following that advice shifted every label and month length by one
+  month. `--start` is now optional and must match the file when given.
+- Precipitation units come from the `units` attribute (`mm/s` in every CPC file); `--units`
+  must agree with it.
+- `--months` entries that are not target months of the file are an error (they used to be
+  dropped silently when another entry matched); `--title` accepts `{month}`; `--input` accepts
+  folders.
+- All 19 figures rebuilt with `make figures`: byte-identical.
+- New tests run every product end to end on netCDF3 files laid out like the CPC ones (the
+  fixtures used to be netCDF4, so the reader for the real files was never tested): month
+  labels and lengths from the target axis, no month-length scaling of temperature, `--start`
+  and `--units` cross-checks, folders as input, `make figures` failures; the committed CPC
+  files start at their initialisation month. Coverage, now with `scripts/` and branches: 85%.

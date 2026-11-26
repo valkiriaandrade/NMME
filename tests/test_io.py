@@ -1,15 +1,11 @@
-import importlib
+import subprocess
+import sys
 
 import numpy as np
 import pytest
 import xarray as xr
 
-from nmme_maps.io import align_exact, files_in, read_field, spatial
-
-
-def test_empty_directory(tmp_path):
-    with pytest.raises(ValueError, match="No .nc files"):
-        files_in(tmp_path, ".nc")
+from nmme_maps.io import align_exact, read_field, spatial
 
 
 def test_missing_variable_and_loaded_data(tmp_path):
@@ -38,9 +34,10 @@ def test_mismatched_coordinates_rejected():
         align_exact(a, b)
 
 
-def test_import_has_no_output(tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
-    importlib.import_module("nmme_maps.cli")
+def test_import_has_no_output(tmp_path):
+    # A fresh interpreter: in this test session the package is already imported.
+    code = "import nmme_maps.cli, nmme_maps.plotting, sys; sys.exit('matplotlib.pyplot' in sys.modules)"
+    subprocess.run([sys.executable, "-c", code], cwd=tmp_path, check=True)
     assert not list(tmp_path.iterdir())
 
 

@@ -16,6 +16,7 @@ Files that already exist are skipped (use ``--overwrite`` to fetch them again).
 from __future__ import annotations
 
 import argparse
+import http.client
 import logging
 import re
 import shutil
@@ -41,6 +42,17 @@ class DownloadError(RuntimeError):
     """A file could not be downloaded."""
 
 
+class IncompleteDownload(OSError):
+    """The server closed the connection before sending the whole file."""
+
+
+def expected_size(response) -> int | None:
+    """``Content-Length`` of a response, or ``None`` when the server did not send one."""
+    headers = getattr(response, "headers", None)
+    value = headers.get("Content-Length") if headers is not None else None
+    return int(value) if value and value.strip().isdigit() else None
+
+
 @dataclass(frozen=True)
 class Item:
     """One file to download: source URL and destination relative to the data folder."""
@@ -53,6 +65,13 @@ def parse_run(value: str) -> str:
     """Validate a run month ``YYYYMM`` (argparse type)."""
     if not re.fullmatch(r"\d{4}(0[1-9]|1[0-2])", value):
         raise argparse.ArgumentTypeError(f"invalid run {value!r}; use YYYYMM, e.g. 202407")
+    return value
+
+
+def parse_name(value: str) -> str:
+    """Model or variable name as used in CPC file names, e.g. ``GEM5.2_NEMO`` (argparse type)."""
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", value) or ".." in value:
+        raise argparse.ArgumentTypeError(f"invalid name {value!r}; use letters, digits, _ . -")
     return value
 
 
@@ -94,7 +113,9 @@ def fetch(
 ) -> bool:
     """Download ``url`` to ``dest``; return False if it was skipped because it exists.
 
-    The file is written to ``<dest>.part`` first and renamed when complete.
+    The file is written to ``<dest>.part`` first and renamed only when complete: a
+    connection that drops early (fewer bytes than ``Content-Length``, or an incomplete
+    chunked response) is retried, so a truncated file never gets the final name.
 
     Raises:
         DownloadError: if the file does not exist on the server or every attempt fails.
@@ -110,6 +131,10 @@ def fetch(
             request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
             with opener(request, timeout=timeout) as response, partial.open("wb") as out:
                 shutil.copyfileobj(response, out)
+                expected = expected_size(response)
+            received = partial.stat().st_size
+            if expected is not None and received != expected:
+                raise IncompleteDownload(f"received {received} of {expected} bytes")
             partial.replace(dest)
             return True
         except urllib.error.HTTPError as error:
@@ -119,7 +144,7 @@ def fetch(
                     f"Not found on the server: {url} (check the run month, variable and model)"
                 ) from error
             last_error = error
-        except (urllib.error.URLError, TimeoutError, OSError) as error:
+        except (urllib.error.URLError, http.client.HTTPException, TimeoutError, OSError) as error:
             partial.unlink(missing_ok=True)
             last_error = error
         if attempt < retries:
@@ -153,9 +178,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--run", nargs="+", type=parse_run, metavar="YYYYMM", help="initialisation month(s)"
     )
-    parser.add_argument("--variable", nargs="+", default=["prate"], help="e.g. prate tmax tmin")
-    parser.add_argument("--kind", choices=["anom", "fcst"], default="anom")
-    parser.add_argument("--model", nargs="+", default=["NMME"], help="NMME or single models")
+    parser.add_argument(
+        "--variable", nargs="+", type=parse_name, help="with --run: e.g. prate tmax tmin (prate)"
+    )
+    parser.add_argument("--kind", choices=["anom", "fcst"], help="with --run: anom or fcst (anom)")
+    parser.add_argument(
+        "--model", nargs="+", type=parse_name, help="with --run: NMME or single models (NMME)"
+    )
     parser.add_argument("--data-dir", type=Path, default=ROOT / "data")
     parser.add_argument("--overwrite", action="store_true", help="download existing files again")
     parser.add_argument("--dry-run", action="store_true", help="only list the URLs")
@@ -164,10 +193,15 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     """Entry point; returns the process exit status."""
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     if args.run:
-        items = custom_plan(args.run, args.variable, args.kind, args.model)
+        items = custom_plan(
+            args.run, args.variable or ["prate"], args.kind or "anom", args.model or ["NMME"]
+        )
+    elif args.variable or args.kind or args.model:
+        parser.error("--variable, --kind and --model select files of a --run; add --run YYYYMM")
     else:
         items = figure_plan()
     if args.dry_run:

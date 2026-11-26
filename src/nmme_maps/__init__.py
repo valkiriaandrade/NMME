@@ -3,4 +3,4 @@
 Importing the package has no side effects: no files are read or written.
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
