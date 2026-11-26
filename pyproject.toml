@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nmme-maps"
-version = "0.2.0"
+version = "0.3.0"
 description = "NMME / CFSv2 seasonal forecast maps of Brazil: monthly precipitation, temperature and anomalies"
 readme = "README.md"
 license = "MIT"

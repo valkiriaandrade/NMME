@@ -135,7 +135,7 @@ Shortcuts in `scripts/` preset `--product`: `cfsv2_precipitation.py`,
 ## Project structure
 
 ```
-NMME/
+nmme-seasonal-forecast-maps/
 ├── data/                  # sample NMME / CFSv2 files; `make data` adds the rest
 ├── figures/               # published maps (rebuilt with `make figures`)
 │   └── precipitation_anomaly/
@@ -148,6 +148,7 @@ NMME/
 │   ├── processing.py      # target months, unit conversion, ensemble mean
 │   ├── io.py              # NetCDF reading and grid checks
 │   ├── plotting.py        # shared map style and rendering
+│   ├── colour_scales.py   # palettes and class levels of each product
 │   ├── labels.py          # titles, model names and unit labels
 │   └── regions.py         # map domains and region aliases
 ├── tests/                 # pytest suite (synthetic data; network access is blocked)
@@ -175,8 +176,9 @@ a test fixture blocks network access. `make data` is a manual step.
 
 ## License
 
-[MIT](LICENSE) © Valkiria Andrade. NMME data: NOAA Climate Prediction Center and the
-participating modelling centres (public domain).
+Code: [MIT](LICENSE) © Valkiria Andrade. NMME data: NOAA Climate Prediction Center and the
+participating modelling centres (public domain). Coastlines and borders on the maps come from
+[Natural Earth](https://www.naturalearthdata.com/) (public domain).
 
 ---
 

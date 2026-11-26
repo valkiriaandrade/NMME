@@ -14,8 +14,11 @@ Absolute forecast files must not be used as anomaly files.
 ## English translation and figure regeneration (v0.2.0)
 
 - Folders and files renamed to English; code, CLI help, messages, titles and labels
-  translated. Unit conversion, ensemble mean, palettes (`YlGnBu`, `BrBG`, `RdBu_r`) and
-  class levels are unchanged.
+  translated. Unit conversion and ensemble mean are unchanged. The colour scales are those of
+  the original scripts (restored in commit 9b5c932, "Restore the original colour scales", after a first
+  English version that used `YlGnBu`): precipitation `jet`, 0–240 mm/month every 20;
+  precipitation anomaly `BrBG`, −150…150 every 30; temperature anomaly `RdBu_r`, −6.5…6.5 °C
+  every 1.
 - Regenerated with `make figures`: `figures/cfsv2_precipitation_2024-05.png` (April 2024
   run) and the nine `figures/nmme_tmax_anomaly_YYYY-MM.png` maps (July 2024 run).
 - Not regenerated: the nine `figures/precipitation_anomaly/*.png` maps. They need
@@ -33,7 +36,8 @@ Absolute forecast files must not be used as anomaly files.
 - The nine precipitation-anomaly maps are now regenerated from that file. Evidence that
   it is the source of the original maps:
   - the original script averaged every file in a local `fcst` folder (×30 days) and
-    started the month labels at 07/2024; the committed `Dados/fcst` holds the absolute
+    started the month labels at 07/2024; its `Dados/fcst` folder (now
+    `data/nmme_202407_forecasts/`) holds the absolute
     forecasts, but the original maps show negative values, so they were made from the
     anomaly files of the same July 2024 run;
   - the CPC NMME ensemble anomaly equals the mean of the seven model anomalies exactly;
