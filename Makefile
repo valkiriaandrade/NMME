@@ -17,7 +17,7 @@ format:  ## Apply ruff fixes and formatting
 	$(PYTHON) -m ruff check --fix .
 	$(PYTHON) -m ruff format .
 
-data:  ## Download the NMME files the figures need (NOAA CPC)
+data:  ## Download the NMME files (NOAA CPC) and IBGE state borders the figures need
 	$(PYTHON) scripts/download_data.py
 
 figures:  ## Regenerate every figure in figures/ from data/ (run `make data` first)

@@ -23,7 +23,11 @@ def test_figure_plan_matches_repository_layout(download_module):
     anomaly = "nmme_202407_anomalies/NMME.prate.202407.ENSMEAN.anom.nc"
     assert plan[anomaly] == f"{CPC}/2024070800/NMME.prate.202407.ENSMEAN.anom.nc"
     assert plan["CFSv2.prate.202404.ENSMEAN.fcst.nc"].startswith(f"{CPC}/2024040800/")
-    committed = [path for path in plan if path != anomaly]
+    borders = "BR_UF_2022/BR_UF_2022.zip"
+    assert plan[borders].startswith("https://geoftp.ibge.gov.br/") and plan[borders].endswith(
+        "/municipio_2022/Brasil/BR/BR_UF_2022.zip"
+    )
+    committed = [path for path in plan if path not in (anomaly, borders)]
     assert len(committed) == 9
     assert all((ROOT / "data" / path).exists() for path in committed)  # committed samples
 
@@ -61,13 +65,17 @@ def test_missing_file_gives_clear_error(tmp_path, download_module):
     def opener(request, timeout):
         raise urllib.error.HTTPError(request.full_url, 404, "Not Found", {}, None)
 
-    with pytest.raises(download_module.DownloadError, match="Not found on the server"):
+    with pytest.raises(download_module.DownloadError, match="Not found on the server") as error:
         download_module.fetch("https://x/missing.nc", tmp_path / "m.nc", opener=opener)
+    assert "run month" not in str(error.value)  # the NMME hint is only for NOAA CPC files
+    nmme = f"{download_module.BASE_URL}/2024070800/NMME.tmax.202407.ENSMEAN.anom.nc"
+    with pytest.raises(download_module.DownloadError, match="check the run month"):
+        download_module.fetch(nmme, tmp_path / "n.nc", opener=opener)
 
 
 def test_main_dry_run(capsys, download_module):
     assert download_module.main(["--dry-run"]) == 0
-    assert len(capsys.readouterr().out.splitlines()) == 10
+    assert len(capsys.readouterr().out.splitlines()) == 11  # 10 NMME files + IBGE borders
 
 
 def test_network_is_blocked_in_tests():

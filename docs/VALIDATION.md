@@ -69,3 +69,22 @@ Absolute forecast files must not be used as anomaly files.
   labels and lengths from the target axis, no month-length scaling of temperature, `--start`
   and `--units` cross-checks, folders as input, `make figures` failures; the committed CPC
   files start at their initialisation month. Coverage, now with `scripts/` and branches: 85%.
+
+## IBGE state borders (2026-11-26)
+
+- The maps now draw the IBGE state borders (Malha Territorial 2022, `BR_UF_2022.zip`) in the
+  line style of the MERGE and SAMeT maps (black, 0.5). `make data` downloads the file from
+  IBGE; it is byte-identical (SHA-256) to the copy committed in the MERGE repository. It is
+  not committed here: at 13.7 MB it is over the repository's 5 MB pre-commit limit.
+- Unlike MERGE and SAMeT, the field is not masked to Brazil: the original NMME scripts drew the
+  forecast over the whole map with coastlines, state and country lines on top, and they still
+  do. Brazil's states, coast and national border come from the IBGE file; Natural Earth lines
+  (coastline, country borders, provinces of the neighbouring countries, as before) are drawn
+  only outside a 0.1° zone around Brazil, so no line is drawn twice. That zone is built from
+  the IBGE outline simplified to 0.01° (about 1 km) and cached; the IBGE lines themselves are
+  drawn at full resolution.
+- One visible side effect: the coastal lagoons of Rio Grande do Sul (Lagoa dos Patos, Lagoa
+  Mirim) are inside the IBGE state polygons, so their Natural Earth outlines are no longer
+  drawn, as on the MERGE and SAMeT maps.
+- All 19 figures regenerated with `make figures`; apart from the lines, nothing in them changed (same data,
+  palettes, levels and titles). A second run gives the same bytes.

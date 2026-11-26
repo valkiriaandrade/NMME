@@ -4,6 +4,10 @@ Source: NOAA Climate Prediction Center, North American Multi-Model Ensemble,
 https://ftp.cpc.ncep.noaa.gov/NMME/realtime_anom/ENSMEAN/<YYYYMM>0800/ (public domain).
 Files are named ``<MODEL>.<variable>.<YYYYMM>.ENSMEAN.<anom|fcst>.nc``.
 
+The IBGE state boundaries drawn on the maps (Malha Territorial 2022) come from
+https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/ and are saved as
+``data/BR_UF_2022/BR_UF_2022.zip``.
+
 Usage::
 
     python scripts/download_data.py                   # everything `make figures` needs
@@ -29,6 +33,12 @@ from dataclasses import dataclass
 from pathlib import Path
 
 BASE_URL = "https://ftp.cpc.ncep.noaa.gov/NMME/realtime_anom/ENSMEAN"
+#: IBGE federative-unit boundaries, Malha Territorial 2022 (zipped shapefile, 13.7 MB).
+STATE_BORDERS_URL = (
+    "https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/"
+    "malhas_municipais/municipio_2022/Brasil/BR/BR_UF_2022.zip"
+)
+STATE_BORDERS = Path("BR_UF_2022") / "BR_UF_2022.zip"
 ROOT = Path(__file__).resolve().parents[1]
 USER_AGENT = "nmme-maps-data-download"
 MODELS_202407 = [
@@ -88,6 +98,7 @@ def figure_plan() -> list[Item]:
         item("NMME", "tmax", "202407", "anom"),
         item("NMME", "prate", "202407", "anom", "nmme_202407_anomalies"),
         *(item(m, "prate", "202407", "fcst", "nmme_202407_forecasts") for m in MODELS_202407),
+        Item(STATE_BORDERS_URL, STATE_BORDERS),
     ]
 
 
@@ -140,9 +151,10 @@ def fetch(
         except urllib.error.HTTPError as error:
             partial.unlink(missing_ok=True)
             if error.code == 404:
-                raise DownloadError(
-                    f"Not found on the server: {url} (check the run month, variable and model)"
-                ) from error
+                hint = (
+                    " (check the run month, variable and model)" if url.startswith(BASE_URL) else ""
+                )
+                raise DownloadError(f"Not found on the server: {url}{hint}") from error
             last_error = error
         except (urllib.error.URLError, http.client.HTTPException, TimeoutError, OSError) as error:
             partial.unlink(missing_ok=True)

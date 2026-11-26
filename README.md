@@ -24,8 +24,10 @@
     using the real number of days in each month (leap years included);
   - `precipitation-anomaly`: the same conversion applied to anomaly files;
   - `temperature-anomaly`: anomaly in °C (a 1 K difference equals 1 °C).
-- Titles name the model, quantity, region, target month and units; maps have coastline,
-  country and state borders, lat/lon labels and a source credit.
+- Titles name the model, quantity, region, target month and units; maps have lat/lon labels,
+  a source credit and borders: the IBGE state borders (Malha Territorial 2022, as in the MERGE
+  and SAMeT maps) for Brazil, Natural Earth coastlines and borders elsewhere. The forecast
+  field is drawn everywhere, not masked to Brazil.
 
 ## Data source
 
@@ -39,7 +41,8 @@ and NOAA CPC.
 All files used here come from the **NOAA CPC NMME real-time archive**,
 https://ftp.cpc.ncep.noaa.gov/NMME/realtime_anom/ENSMEAN/ (public domain).
 
-*Data: NOAA Climate Prediction Center – North American Multi-Model Ensemble.*
+*Data: NOAA Climate Prediction Center – North American Multi-Model Ensemble. State borders:
+IBGE, Malha Territorial 2022.*
 
 | File / folder in `data/` | Content | In the repo? |
 |---|---|---|
@@ -47,6 +50,7 @@ https://ftp.cpc.ncep.noaa.gov/NMME/realtime_anom/ENSMEAN/ (public domain).
 | `NMME.tmax.202407.ENSMEAN.anom.nc` | NMME maximum temperature anomaly (K), July 2024 run, 12 target months | committed sample |
 | `nmme_202407_forecasts/*.prate.202407.ENSMEAN.fcst.nc` | Precipitation forecasts from 7 NMME models, July 2024 run | committed sample |
 | `nmme_202407_anomalies/NMME.prate.202407.ENSMEAN.anom.nc` | NMME ensemble precipitation anomaly (mm/s), July 2024 run | `make data` |
+| `BR_UF_2022/BR_UF_2022.zip` | IBGE 2022 state boundaries (zipped shapefile, 13.7 MB) drawn on every map | `make data` (from IBGE) |
 
 ## Get the data
 
@@ -54,8 +58,9 @@ https://ftp.cpc.ncep.noaa.gov/NMME/realtime_anom/ENSMEAN/ (public domain).
 make data                          # or: python scripts/download_data.py
 ```
 
-This downloads from NOAA CPC exactly what the README examples and `make figures` need, and
-skips files that are already there. Other runs, variables or models:
+This downloads from NOAA CPC exactly what the README examples and `make figures` need, plus the
+IBGE state boundaries from IBGE's server, and skips files that are already there. `make figures`
+needs the IBGE file, so run `make data` first. Other runs, variables or models:
 
 ```bash
 python scripts/download_data.py --run 202410 --variable prate tmax --kind anom --model NMME
@@ -128,7 +133,8 @@ climatology is subtracted.
 | `--filename TEMPLATE` | `{product}_{year}-{month:02d}.png` | Output file name template |
 | `--variable NAME` | `fcst` | NetCDF variable |
 | `--target-dim NAME` | `target` | Forecast-month dimension |
-| `--shapefile FILE` | – | Optional state boundaries (`.shp` or zipped) to mask the field; by default Natural Earth borders are drawn |
+| `--borders FILE` | – | State boundaries (`.shp` or zipped, e.g. `data/BR_UF_2022/BR_UF_2022.zip`) drawn over the field without masking it; Natural Earth lines are drawn outside them. `make figures` uses the IBGE file |
+| `--shapefile FILE` | – | Optional state boundaries (`.shp` or zipped) to mask the field instead; without `--borders` or `--shapefile`, Natural Earth borders are drawn |
 | `--title TEXT` | built from the data | Custom map title; `{month}` is replaced by each target month |
 | `--dpi N` | `200` | PNG resolution |
 | `--verbose` | off | Debug logging and full tracebacks |
@@ -144,7 +150,7 @@ nmme-seasonal-forecast-maps/
 ├── figures/               # published maps (rebuilt with `make figures`)
 │   └── precipitation_anomaly/
 ├── scripts/
-│   ├── download_data.py   # downloads NMME files from NOAA CPC (`make data`)
+│   ├── download_data.py   # downloads NMME files (NOAA CPC) and IBGE borders (`make data`)
 │   ├── make_figures.py    # regenerates every figure in figures/
 │   └── *.py               # shortcuts for the CLI
 ├── src/nmme_maps/
@@ -157,6 +163,7 @@ nmme-seasonal-forecast-maps/
 │   └── regions.py         # map domains and region aliases
 ├── tests/                 # pytest suite (synthetic data; network access is blocked)
 ├── docs/                  # validation notes and project history
+├── DATA_LICENSE.md        # terms of the NMME, IBGE and Natural Earth data
 ├── Makefile
 └── pyproject.toml
 ```
@@ -167,7 +174,7 @@ nmme-seasonal-forecast-maps/
 make install   # editable install with dev tools + pre-commit hooks (ruff)
 make test      # pytest with coverage report (fails below 80%)
 make lint      # ruff check + ruff format --check
-make data      # download the NMME files from NOAA CPC (manual step, never run in CI)
+make data      # download the NMME files (NOAA CPC) and IBGE borders (manual step, never run in CI)
 make figures   # regenerate every figure in figures/ from data/
 ```
 
@@ -181,8 +188,9 @@ a test fixture blocks network access. `make data` is a manual step.
 ## License
 
 Code: [MIT](LICENSE) © Valkiria Andrade. NMME data: NOAA Climate Prediction Center and the
-participating modelling centres (public domain). Coastlines and borders on the maps come from
-[Natural Earth](https://www.naturalearthdata.com/) (public domain).
+participating modelling centres (public domain). State borders: IBGE, Malha Territorial 2022;
+other coastlines and borders: [Natural Earth](https://www.naturalearthdata.com/) (public domain).
+See [DATA_LICENSE.md](DATA_LICENSE.md).
 
 ---
 

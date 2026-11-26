@@ -7,6 +7,7 @@ uses Natural Earth coastlines, country and state borders (downloaded on first us
 
 from __future__ import annotations
 
+import functools
 from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -52,6 +53,68 @@ def _read_borders(shapefile: str | Path, states: Sequence[str] | None):
     return borders
 
 
+#: Line style of the state boundaries, the same as in the MERGE and SAMeT maps.
+STATE_LINE = {"facecolor": "none", "edgecolor": "black", "linewidth": 0.5}
+#: Natural Earth layers drawn outside the area of ``state_lines`` (as before, at 50m).
+NATURAL_EARTH_LINES = (
+    ("physical", "coastline", {"edgecolor": "black", "linewidth": 0.6}),
+    ("cultural", "admin_0_boundary_lines_land", {"edgecolor": "black", "linewidth": 0.6}),
+    ("cultural", "admin_1_states_provinces_lakes", {"edgecolor": "dimgray", "linewidth": 0.3}),
+)
+#: Natural Earth lines closer than this (degrees) to the state boundaries are not drawn, so
+#: Brazil's coast and borders are drawn once, from the state boundaries file.
+OUTSIDE_MARGIN = 0.1
+#: The zone around the states is built from their outline simplified to this tolerance
+#: (degrees, about 1 km): the full-resolution outline takes minutes to buffer. The state
+#: lines themselves are always drawn at full resolution.
+OUTLINE_TOLERANCE = 0.01
+
+
+def lines_outside(geometries, keep_out) -> list:
+    """The parts of ``geometries`` (lines, or polygon outlines) outside ``keep_out``;
+    empty parts are dropped.
+
+    >>> from shapely.geometry import LineString, box
+    >>> [g.length for g in lines_outside([LineString([(-2, 0), (2, 0)])], box(0, -1, 3, 1))]
+    [2.0]
+    """
+    outside = []
+    for geometry in geometries:
+        if geometry.geom_type in ("Polygon", "MultiPolygon"):
+            geometry = geometry.boundary
+        part = geometry.difference(keep_out)
+        if not part.is_empty:
+            outside.append(part)
+    return outside
+
+
+@functools.lru_cache(maxsize=4)
+def _state_layers(state_lines: str):
+    """State boundaries and the zone around them where Natural Earth lines are not drawn.
+
+    Cached: ``make figures`` draws the same file on every map.
+    """
+    from shapely.ops import unary_union
+
+    states = _read_borders(state_lines, None)
+    outline = unary_union(states.geometry.simplify(OUTLINE_TOLERANCE))
+    return states, outline.buffer(OUTSIDE_MARGIN)
+
+
+def _draw_state_lines(ax, state_lines: str | Path, extent: Sequence[float]) -> None:
+    """IBGE-style state boundaries in :data:`STATE_LINE`, Natural Earth lines elsewhere."""
+    import cartopy.crs as ccrs
+    import cartopy.feature as cfeature
+
+    states, keep_out = _state_layers(str(Path(state_lines).resolve()))
+    ax.add_geometries(states.geometry, ccrs.PlateCarree(), **STATE_LINE)
+    for category, name, style in NATURAL_EARTH_LINES:
+        feature = cfeature.NaturalEarthFeature(category, name, "50m")
+        lines = lines_outside(feature.intersecting_geometries(extent), keep_out)
+        if lines:
+            ax.add_geometries(lines, ccrs.PlateCarree(), facecolor="none", **style)
+
+
 def plot_map(
     values: Any,
     lat: Any,
@@ -64,6 +127,7 @@ def plot_map(
     cmap: str | Colormap,
     shapefile: str | Path | None = None,
     states: Sequence[str] | None = None,
+    state_lines: str | Path | None = None,
     extent: Sequence[float] | None = None,
     credit: str | None = None,
     dpi: int = DEFAULT_DPI,
@@ -83,6 +147,10 @@ def plot_map(
         cmap: Matplotlib colormap name or colormap object (e.g. a ``ListedColormap``).
         shapefile: optional boundaries used to mask the field and draw borders.
         states: optional ``SIGLA_UF`` codes to keep from the shapefile.
+        state_lines: optional state boundaries (e.g. IBGE ``BR_UF_2022.zip``) drawn as
+            lines without masking the field: Brazil's states, coast and national border
+            come from this file, the rest of the map from Natural Earth. Not combined with
+            ``shapefile``.
         extent: ``[lon_min, lon_max, lat_min, lat_max]``; defaults to the data extent.
         credit: small source credit printed in the bottom-right corner.
         dpi: output resolution.
@@ -95,6 +163,8 @@ def plot_map(
     Raises:
         ValueError: on inconsistent grids, bad shapefiles or an all-missing field.
     """
+    if shapefile and state_lines:
+        raise ValueError("Use either a shapefile to mask the field or state lines, not both")
     # A bare Figure renders with Agg without touching pyplot or the caller's backend.
     import cartopy.crs as ccrs
     import cartopy.feature as cfeature
@@ -153,6 +223,8 @@ def plot_map(
                 edgecolor="black",
                 linewidth=0.5,
             )
+        elif state_lines:
+            _draw_state_lines(ax, state_lines, ax.get_extent(crs=ccrs.PlateCarree()))
         else:
             ax.coastlines(resolution="50m", linewidth=0.6)
             ax.add_feature(cfeature.BORDERS, linewidth=0.6)
