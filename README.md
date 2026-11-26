@@ -63,8 +63,9 @@ python scripts/download_data.py --run 202410 --kind fcst --model CFSv2 GFDL_SPEA
 python scripts/download_data.py --dry-run          # only list the URLs
 ```
 
-Custom downloads go to `data/nmme_<YYYYMM>_<anomalies|forecasts>/`. Downloaded files are
-git-ignored, and a file missing on the server is reported by name.
+Custom downloads go to `data/nmme_<YYYYMM>_<anomalies|forecasts>/`. `--variable`, `--kind`
+and `--model` need `--run`. Downloaded files are git-ignored, and a file missing on the server
+is reported by name. A download cut off midway is retried, never saved under its final name.
 
 ## Install
 

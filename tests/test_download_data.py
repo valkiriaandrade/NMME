@@ -73,3 +73,53 @@ def test_main_dry_run(capsys, download_module):
 def test_network_is_blocked_in_tests():
     with pytest.raises(RuntimeError, match="must not use the network"):
         socket.create_connection(("ftp.cpc.ncep.noaa.gov", 443))
+
+
+class SizedResponse(FakeResponse):
+    """A response that announces ``size`` bytes in Content-Length (whatever it sends)."""
+
+    def __init__(self, body, size):
+        super().__init__(body)
+        self.headers = {"Content-Length": str(size)}
+
+
+def test_truncated_download_is_retried_and_never_kept(tmp_path, monkeypatch, download_module):
+    monkeypatch.setattr(download_module.time, "sleep", lambda seconds: None)
+    answers = [SizedResponse(b"CDF", 10), SizedResponse(b"CDF-whole!", 10)]
+    dest = tmp_path / "run.nc"
+    opener = lambda request, timeout: answers.pop(0)  # noqa: E731
+    assert download_module.fetch("https://x/run.nc", dest, opener=opener) is True
+    assert dest.read_bytes() == b"CDF-whole!" and not answers
+
+    always_short = lambda request, timeout: SizedResponse(b"CDF", 10)  # noqa: E731
+    with pytest.raises(download_module.DownloadError, match="received 3 of 10 bytes"):
+        download_module.fetch("https://x/b.nc", tmp_path / "b.nc", opener=always_short)
+    assert list(tmp_path.iterdir()) == [dest]  # no truncated file, no .part left behind
+
+
+def test_incomplete_chunked_response_is_retried(tmp_path, monkeypatch, download_module):
+    import http.client
+
+    monkeypatch.setattr(download_module.time, "sleep", lambda seconds: None)
+
+    class Broken(FakeResponse):
+        def read(self, *args):
+            raise http.client.IncompleteRead(b"CD", 8)
+
+    answers = [Broken(b""), FakeResponse(b"CDF")]
+    dest = tmp_path / "run.nc"
+    assert download_module.fetch("https://x/run.nc", dest, opener=lambda r, timeout: answers.pop(0))
+    assert dest.read_bytes() == b"CDF"
+
+
+def test_selection_options_need_a_run(download_module):
+    for option in (["--variable", "tmax"], ["--kind", "fcst"], ["--model", "CFSv2"]):
+        with pytest.raises(SystemExit):
+            download_module.main([*option, "--dry-run"])
+
+
+@pytest.mark.parametrize("value", ["../x", "a/b", "..", "", "x y"])
+def test_model_and_variable_names_cannot_leave_the_data_folder(value, download_module):
+    with pytest.raises(argparse.ArgumentTypeError):
+        download_module.parse_name(value)
+    assert download_module.parse_name("GEM5.2_NEMO") == "GEM5.2_NEMO"
