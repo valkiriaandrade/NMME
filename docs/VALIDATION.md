@@ -64,3 +64,8 @@ Absolute forecast files must not be used as anomaly files.
   dropped silently when another entry matched); `--title` accepts `{month}`; `--input` accepts
   folders.
 - All 19 figures rebuilt with `make figures`: byte-identical.
+- New tests run every product end to end on netCDF3 files laid out like the CPC ones (the
+  fixtures used to be netCDF4, so the reader for the real files was never tested): month
+  labels and lengths from the target axis, no month-length scaling of temperature, `--start`
+  and `--units` cross-checks, folders as input, `make figures` failures; the committed CPC
+  files start at their initialisation month. Coverage, now with `scripts/` and branches: 85%.

@@ -92,7 +92,7 @@ def precipitation_units(field, requested: str | None) -> str:
                 "mm/day or mm/month"
             )
         return found
-    if declared is not None and found != requested:
+    if found is not None and found != requested:  # unrecognised spellings: trust --units
         raise ValueError(f"--units {requested} contradicts the file, which declares {declared!r}")
     return requested
 

@@ -46,6 +46,9 @@ addopts = "--doctest-modules"
 source = ["nmme_maps", "scripts"]
 branch = true
 
+[tool.coverage.report]
+fail_under = 80
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"
