@@ -172,5 +172,10 @@ def test_make_figures_reports_skipped_and_failed(tmp_path, monkeypatch):
         make_figures.FigureSet("bad again", ["bad.nc"], ["--start", "2024-07"]),
     ]
     monkeypatch.setattr(make_figures, "FIGURE_SETS", sets)
+    # without the IBGE borders every set is skipped (run `make data`)
+    skipped, failed = make_figures.build(tmp_path, tmp_path / "figures", 50)
+    assert skipped == ["bad", "absent", "bad again"] and not failed
+    (tmp_path / make_figures.STATE_BORDERS).parent.mkdir()
+    (tmp_path / make_figures.STATE_BORDERS).write_bytes(b"zip")
     skipped, failed = make_figures.build(tmp_path, tmp_path / "figures", 50)
     assert skipped == ["absent"] and failed == ["bad", "bad again"]

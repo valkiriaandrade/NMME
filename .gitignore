@@ -16,4 +16,6 @@ htmlcov/
 data/nmme_*_anomalies/
 data/nmme_*_forecasts/
 data/*.ENSMEAN.*.nc
+# IBGE state boundaries, downloaded by `make data`
+data/BR_UF_2022/
 *.part

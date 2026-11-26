@@ -79,12 +79,19 @@ def resolve_inputs(data_dir: Path, inputs: list[str]) -> list[Path]:
     return paths
 
 
+#: IBGE state boundaries drawn on every map (downloaded by `make data`).
+STATE_BORDERS = Path("BR_UF_2022") / "BR_UF_2022.zip"
+
+
 def build(data_dir: Path, figures_dir: Path, dpi: int) -> tuple[list[str], list[str]]:
     """Rebuild every figure set with available data; return the names skipped and failed."""
     skipped, failed = [], []
+    borders = data_dir / STATE_BORDERS
     for figure_set in FIGURE_SETS:
         inputs = resolve_inputs(data_dir, figure_set.inputs)
         missing = [str(p) for p in inputs if not p.exists()] or ([] if inputs else ["inputs"])
+        if not borders.exists():
+            missing.append(str(borders))
         if missing:
             logger.warning(
                 "Skipping %s (kept existing images): missing %s; run `make data`",
@@ -97,6 +104,7 @@ def build(data_dir: Path, figures_dir: Path, dpi: int) -> tuple[list[str], list[
         args = ["--input", *map(str, inputs), *figure_set.options]
         if figure_set.months:
             args += ["--months", *figure_set.months]
+        args += ["--borders", str(borders)]
         args += ["--dpi", str(dpi), "--output", str(figures_dir / figure_set.subdir)]
         try:
             nmme_maps(args)

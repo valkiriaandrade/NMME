@@ -165,6 +165,7 @@ def run(args: argparse.Namespace) -> None:
             extend=scale.extend,
             shapefile=args.shapefile,
             states=list(region.states) if region.states and args.shapefile else None,
+            state_lines=args.borders,
             extent=list(region.extent),
             credit=SOURCE_CREDIT,
             dpi=args.dpi,
@@ -194,6 +195,12 @@ def build_cli() -> argparse.ArgumentParser:
         help="first target month, YYYY-MM. Read from the file's target axis when it has one "
         "(in NOAA CPC files it is the initialisation month); if given, it must match. "
         "Required for files without a 'months since' target axis",
+    )
+    parser.add_argument(
+        "--borders",
+        metavar="FILE",
+        help="state boundaries (.shp or zipped, e.g. IBGE BR_UF_2022.zip) drawn over the field "
+        "without masking it; Natural Earth lines are used outside them",
     )
     parser.add_argument("--variable", default="fcst", help="NetCDF variable to read")
     parser.add_argument("--target-dim", default="target", help="forecast-month dimension")
