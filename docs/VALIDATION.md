@@ -6,8 +6,8 @@
 - May uses 31 days, February accounts for leap years and December rolls over the year.
 - Editable install of the package and Ruff checks executed.
 
-The user provides the target month and the unit: the initialisation month is not assumed
-to be the validity month. Non-Gregorian calendars are not converted automatically.
+At that stage the user provided the first target month and the unit; since v0.3.0 both are
+read from the file (see below). Non-Gregorian calendars are not converted automatically.
 Temperature anomalies in K have the same numerical magnitude in °C.
 Absolute forecast files must not be used as anomaly files.
 
@@ -49,3 +49,18 @@ Absolute forecast files must not be used as anomaly files.
 - Monthly totals use each month's real length (since v0.2), not the fixed 30 days of the
   original script.
 - Maps are drawn with filled contours (`contourf`) as in the original scripts.
+
+## Code review fixes (v0.3.0, 2026-11-26)
+
+- Target months come from the file's `target` axis (months since 1960-01). In every NOAA CPC
+  file used here the first target is the initialisation month: CFSv2 April 2024 run,
+  `target[0] = 771` = April 2024; NMME July 2024 runs (tmax and prate anomalies, seven model
+  forecasts), `target[0] = 774` = July 2024. The README used to say that `--start` was "not the
+  initialisation month"; following that advice shifted every label and month length by one
+  month. `--start` is now optional and must match the file when given.
+- Precipitation units come from the `units` attribute (`mm/s` in every CPC file); `--units`
+  must agree with it.
+- `--months` entries that are not target months of the file are an error (they used to be
+  dropped silently when another entry matched); `--title` accepts `{month}`; `--input` accepts
+  folders.
+- All 19 figures rebuilt with `make figures`: byte-identical.

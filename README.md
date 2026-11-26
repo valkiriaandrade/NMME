@@ -86,18 +86,18 @@ make data                          # fetch the files that are not committed
 
 # CFSv2 monthly precipitation for every target month of the April 2024 run
 nmme-maps --product precipitation --input data/CFSv2.prate.202404.ENSMEAN.fcst.nc \
-          --start 2024-04 --units mm/s --output output/cfsv2
+          --output output/cfsv2
 
 # NMME maximum temperature anomaly, only October-December 2024
 nmme-maps --product temperature-anomaly --input data/NMME.tmax.202407.ENSMEAN.anom.nc \
-          --start 2024-07 --months 2024-10 2024-11 2024-12 --output output/tmax
+          --months 2024-10 2024-11 2024-12 --output output/tmax
 
 # NMME precipitation anomaly, July 2024 run (needs `make data`)
-nmme-maps --product precipitation-anomaly --units mm/s --start 2024-07           --input data/nmme_202407_anomalies/NMME.prate.202407.ENSMEAN.anom.nc --output output/panom
+nmme-maps --product precipitation-anomaly \
+          --input data/nmme_202407_anomalies/NMME.prate.202407.ENSMEAN.anom.nc --output output/panom
 
-# 7-model ensemble mean precipitation of the July 2024 run
-nmme-maps --product precipitation --input data/nmme_202407_forecasts/*.nc \
-          --start 2024-07 --units mm/s --output output/ensemble
+# 7-model ensemble mean precipitation of the July 2024 run (a folder: every .nc inside)
+nmme-maps --product precipitation --input data/nmme_202407_forecasts --output output/ensemble
 
 # Rebuild every figure in figures/
 make figures                       # or: python scripts/make_figures.py
@@ -105,9 +105,12 @@ make figures                       # or: python scripts/make_figures.py
 
 Monthly totals use the actual number of days in each month (28–31), not a fixed 30 days.
 
-Always check that `--start` is the first **target** month in the file, not the initialisation
-month. Anomaly products expect files that already contain anomalies; no climatology is
-subtracted.
+The target months and the precipitation units are read from the file. In the NOAA CPC files
+the `target` axis counts months since 1960-01, and the first target is the initialisation month
+(the July 2024 run starts at July 2024). `--start` is only needed for files without such an axis;
+if you give it anyway, it must match the file. Likewise `--units` must agree with the file's
+`units` attribute. Anomaly products expect files that already contain anomalies; no
+climatology is subtracted.
 
 ## CLI options
 
@@ -115,18 +118,18 @@ subtracted.
 
 | Option | Default | Description |
 |---|---|---|
-| `--input FILE [FILE ...]` | *required* | One or more NetCDF members (averaged with equal weights) |
-| `--start YYYY-MM` | *required* | First target month in the file |
+| `--input PATH [PATH ...]` | *required* | One or more NetCDF members, or folders of them (averaged with equal weights) |
+| `--start YYYY-MM` | from the file | First target month; only needed if the file's target axis has no `months since` units, and checked against it otherwise |
 | `--output DIR` | *required* | Output directory (one PNG per target month) |
 | `--product` | `precipitation` | `precipitation`, `precipitation-anomaly` or `temperature-anomaly` |
-| `--units` | – | Precipitation rate unit in the file: `mm/s`, `mm/day` or `mm/month` (required for precipitation products) |
-| `--months YYYY-MM ...` | all | Only plot these target months |
+| `--units` | from the file | Precipitation rate unit: `mm/s`, `mm/day` or `mm/month`; must agree with the file's `units` attribute |
+| `--months YYYY-MM ...` | all | Only plot these target months (each must be in the file) |
 | `--region {brazil,north,south}` | `brazil` | Map domain; the Portuguese aliases `brasil`, `norte` and `sul` are also accepted |
 | `--filename TEMPLATE` | `{product}_{year}-{month:02d}.png` | Output file name template |
 | `--variable NAME` | `fcst` | NetCDF variable |
 | `--target-dim NAME` | `target` | Forecast-month dimension |
 | `--shapefile FILE` | – | Optional state boundaries (`.shp` or zipped) to mask the field; by default Natural Earth borders are drawn |
-| `--title TEXT` | built from the data | Custom map title |
+| `--title TEXT` | built from the data | Custom map title; `{month}` is replaced by each target month |
 | `--dpi N` | `200` | PNG resolution |
 | `--verbose` | off | Debug logging and full tracebacks |
 

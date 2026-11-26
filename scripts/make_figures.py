@@ -5,13 +5,15 @@ Usage::
     python scripts/make_figures.py [--data-dir data] [--figures-dir figures] [--dpi 200]
 
 Figures whose source data is not in the repository are skipped with a warning and
-the existing images are kept.
+the existing images are kept. A figure set that fails does not stop the others. The exit
+status is 1 if any figure set was skipped or failed.
 """
 
 from __future__ import annotations
 
 import argparse
 import logging
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -77,9 +79,9 @@ def resolve_inputs(data_dir: Path, inputs: list[str]) -> list[Path]:
     return paths
 
 
-def build(data_dir: Path, figures_dir: Path, dpi: int) -> list[str]:
-    """Rebuild every figure set with available data; return the names that were skipped."""
-    skipped = []
+def build(data_dir: Path, figures_dir: Path, dpi: int) -> tuple[list[str], list[str]]:
+    """Rebuild every figure set with available data; return the names skipped and failed."""
+    skipped, failed = [], []
     for figure_set in FIGURE_SETS:
         inputs = resolve_inputs(data_dir, figure_set.inputs)
         missing = [str(p) for p in inputs if not p.exists()] or ([] if inputs else ["inputs"])
@@ -96,11 +98,19 @@ def build(data_dir: Path, figures_dir: Path, dpi: int) -> list[str]:
         if figure_set.months:
             args += ["--months", *figure_set.months]
         args += ["--dpi", str(dpi), "--output", str(figures_dir / figure_set.subdir)]
-        nmme_maps(args)
-    return skipped
+        try:
+            nmme_maps(args)
+        except SystemExit as error:  # the CLI reports expected errors with exit status 2
+            if error.code:
+                logger.error("Failed: %s", figure_set.name)
+                failed.append(figure_set.name)
+        except Exception:
+            logger.exception("Failed: %s", figure_set.name)
+            failed.append(figure_set.name)
+    return skipped, failed
 
 
-def main() -> None:
+def main() -> int:
     """Command-line entry point."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--data-dir", type=Path, default=ROOT / "data")
@@ -108,10 +118,16 @@ def main() -> None:
     parser.add_argument("--dpi", type=int, default=200)
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
-    skipped = build(args.data_dir, args.figures_dir, args.dpi)
-    built = len(FIGURE_SETS) - len(skipped)
-    logger.info("Done: %d figure set(s) regenerated, %d kept as-is", built, len(skipped))
+    skipped, failed = build(args.data_dir, args.figures_dir, args.dpi)
+    built = len(FIGURE_SETS) - len(skipped) - len(failed)
+    logger.info(
+        "Done: %d figure set(s) regenerated, %d skipped, %d failed",
+        built,
+        len(skipped),
+        len(failed),
+    )
+    return 1 if skipped or failed else 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

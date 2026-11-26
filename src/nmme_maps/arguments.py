@@ -54,10 +54,10 @@ def execute(
     reported as a one-line message with exit status 2; ``--verbose`` re-raises them.
     """
     args = parser.parse_args(argv)
-    logging.basicConfig(
-        level=logging.DEBUG if args.verbose else logging.INFO,
-        format="%(levelname)s %(name)s: %(message)s",
-    )
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+    if args.verbose:
+        # Debug output of this package only, not of matplotlib, pyogrio or urllib3.
+        logging.getLogger(__name__.partition(".")[0]).setLevel(logging.DEBUG)
     try:
         operation(args)
     except (ValueError, OSError, KeyError, ImportError) as error:
