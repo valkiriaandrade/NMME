@@ -65,8 +65,12 @@ def test_missing_file_gives_clear_error(tmp_path, download_module):
     def opener(request, timeout):
         raise urllib.error.HTTPError(request.full_url, 404, "Not Found", {}, None)
 
-    with pytest.raises(download_module.DownloadError, match="Not found on the server"):
+    with pytest.raises(download_module.DownloadError, match="Not found on the server") as error:
         download_module.fetch("https://x/missing.nc", tmp_path / "m.nc", opener=opener)
+    assert "run month" not in str(error.value)  # the NMME hint is only for NOAA CPC files
+    nmme = f"{download_module.BASE_URL}/2024070800/NMME.tmax.202407.ENSMEAN.anom.nc"
+    with pytest.raises(download_module.DownloadError, match="check the run month"):
+        download_module.fetch(nmme, tmp_path / "n.nc", opener=opener)
 
 
 def test_main_dry_run(capsys, download_module):

@@ -120,6 +120,8 @@ def selected_months(
 
 def run(args: argparse.Namespace) -> None:
     """Average the members and draw one map per selected target month."""
+    if args.borders and args.shapefile:
+        raise ValueError("Use either --shapefile (mask the field) or --borders, not both")
     field = ensemble(expand_inputs(args.input), args.variable)
     if args.target_dim not in field.dims:
         raise ValueError(

@@ -151,9 +151,10 @@ def fetch(
         except urllib.error.HTTPError as error:
             partial.unlink(missing_ok=True)
             if error.code == 404:
-                raise DownloadError(
-                    f"Not found on the server: {url} (check the run month, variable and model)"
-                ) from error
+                hint = (
+                    " (check the run month, variable and model)" if url.startswith(BASE_URL) else ""
+                )
+                raise DownloadError(f"Not found on the server: {url}{hint}") from error
             last_error = error
         except (urllib.error.URLError, http.client.HTTPException, TimeoutError, OSError) as error:
             partial.unlink(missing_ok=True)

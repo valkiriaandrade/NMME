@@ -87,6 +87,14 @@ def test_mask_and_state_lines_are_exclusive(states, tmp_path):
         )  # fmt: skip
 
 
+def test_cli_rejects_borders_with_shapefile_before_reading_data(tmp_path, states, capsys):
+    with pytest.raises(SystemExit) as error:
+        main(["--input", str(tmp_path / "absent.nc"), "--borders", str(states)]
+             + ["--shapefile", str(states), "--output", str(tmp_path)])  # fmt: skip
+    assert error.value.code == 2
+    assert "not both" in capsys.readouterr().err  # not a missing-file error: checked first
+
+
 def test_cli_passes_the_borders_and_never_masks(tmp_path, states, monkeypatch):
     calls = []
     monkeypatch.setattr(

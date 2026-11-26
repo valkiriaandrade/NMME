@@ -150,7 +150,7 @@ nmme-seasonal-forecast-maps/
 ├── figures/               # published maps (rebuilt with `make figures`)
 │   └── precipitation_anomaly/
 ├── scripts/
-│   ├── download_data.py   # downloads NMME files from NOAA CPC (`make data`)
+│   ├── download_data.py   # downloads NMME files (NOAA CPC) and IBGE borders (`make data`)
 │   ├── make_figures.py    # regenerates every figure in figures/
 │   └── *.py               # shortcuts for the CLI
 ├── src/nmme_maps/
@@ -174,7 +174,7 @@ nmme-seasonal-forecast-maps/
 make install   # editable install with dev tools + pre-commit hooks (ruff)
 make test      # pytest with coverage report (fails below 80%)
 make lint      # ruff check + ruff format --check
-make data      # download the NMME files from NOAA CPC (manual step, never run in CI)
+make data      # download the NMME files (NOAA CPC) and IBGE borders (manual step, never run in CI)
 make figures   # regenerate every figure in figures/ from data/
 ```
 

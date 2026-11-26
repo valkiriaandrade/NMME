@@ -83,5 +83,8 @@ Absolute forecast files must not be used as anomaly files.
   only outside a 0.1° zone around Brazil, so no line is drawn twice. That zone is built from
   the IBGE outline simplified to 0.01° (about 1 km) and cached; the IBGE lines themselves are
   drawn at full resolution.
-- All 19 figures regenerated with `make figures`; nothing else in them changed (same data,
+- One visible side effect: the coastal lagoons of Rio Grande do Sul (Lagoa dos Patos, Lagoa
+  Mirim) are inside the IBGE state polygons, so their Natural Earth outlines are no longer
+  drawn, as on the MERGE and SAMeT maps.
+- All 19 figures regenerated with `make figures`; apart from the lines, nothing in them changed (same data,
   palettes, levels and titles). A second run gives the same bytes.
